@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COM7 Ping Pong League 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&family=Orbitron:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body style="background-image:url('assets/images/2.png');background-size:cover;background-attachment:fixed;background-position:center;">
+<div class="page">
+
+<!-- HERO -->
+<div class="hero" style="position:relative;overflow:hidden;background:#001a2c;">
+  <img src="assets/images/4.jpg" alt="COM7 Ping Pong League 2026" style="width:100%;display:block;height:auto;">
+  <div class="hero-shimmer"></div>
+</div>
+
+<!-- TOP PLAYERS always visible -->
+<div style="background:linear-gradient(180deg,rgba(5,15,35,0.95) 0%,rgba(8,20,50,0.92) 100%);padding:32px 16px 36px;border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(20px);">
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="font-family:'Orbitron',monospace;font-size:clamp(20px,4vw,32px);font-weight:700;color:#fff;letter-spacing:3px;text-shadow:0 0 30px rgba(255,255,255,0.15);">TOP PLAYERS</div>
+    <div style="font-family:'Anuphan',sans-serif;font-size:15px;color:rgba(255,255,255,0.4);margin-top:6px;letter-spacing:0.1em;">Hall of Fame</div>
+  </div>
+  <div class="top-players-section-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;margin:0 auto;">
+    <div>
+      <div style="text-align:center;font-size:13px;font-weight:700;letter-spacing:2px;color:#64b5f6;margin-bottom:18px;font-family:'Anuphan',sans-serif;opacity:0.85;">MEN'S 🏓</div>
+      <div class="podium-row" id="men-podium"></div>
+    </div>
+    <div>
+      <div style="text-align:center;font-size:13px;font-weight:700;letter-spacing:2px;color:#f48fb1;margin-bottom:18px;font-family:'Anuphan',sans-serif;opacity:0.85;">WOMEN'S 🏓</div>
+      <div class="podium-row" id="women-podium"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview',this)">🏠 ภาพรวม</div>
+  <div class="tab" onclick="showTab('standings',this)">📊 ตารางคะแนน</div>
+  <div class="tab" onclick="showTab('matches',this)">⚡ ผลการแข่ง</div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section active" id="tab-overview">
+  <div class="sec-header">
+    <span class="sec-header-icon">🏠</span>
+    <div class="sec-header-en">OVERVIEW</div>
+    <div class="sec-header-th">ภาพรวมการแข่งขัน</div>
+  </div>
+  <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);">
+    <div class="stat-card cyan">
+      <div class="stat-num" id="stat-players">0</div>
+      <div class="stat-label">ผู้เล่น</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-num" id="stat-matches">0</div>
+      <div class="stat-label">การแข่งขัน</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-num" id="stat-live">0</div>
+      <div class="stat-label">LIVE</div>
+    </div>
+    <div class="stat-card" style="background:linear-gradient(160deg,rgba(0,30,55,0.9),rgba(0,20,40,0.97));border:1px solid rgba(100,200,255,0.2);">
+      <div style="font-size:18px;margin-bottom:4px;">📅</div>
+      <div id="stat-next-date" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--cyan);line-height:1.4;">—</div>
+      <div class="stat-label">แข่งต่อไป</div>
+    </div>
+  </div>
+  <div class="section-title" style="font-size:14px;margin-bottom:14px;text-align:center;">⚡ การแข่งขันล่าสุด</div>
+  <div id="recent-matches-list"></div>
+</div>
+
+<!-- STANDINGS -->
+<div class="section" id="tab-standings">
+  <div class="sec-header">
+    <span class="sec-header-icon">📊</span>
+    <div class="sec-header-en">ALL-RANKING &amp; STANDINGS</div>
+    <div class="sec-header-th">ตารางคะแนน · COM7 Ping Pong League 2026</div>
+    <div class="sec-header-sub">สรุปอันดับผู้เล่นทั้งหมด แยกตามประเภท</div>
+  </div>
+  <div class="search-bar">
+    <span style="font-size:15px;color:var(--muted);">🔍</span>
+    <input type="text" placeholder="Search Players..." id="search-input" oninput="filterStandings()">
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <div class="filter-btns" style="margin-bottom:0;">
+      <button type="button" class="filter-btn all is-active" onclick="filterByStatus('all',this)">ทั้งหมด</button>
+      <button type="button" class="filter-btn winner" onclick="filterByStatus('WINNER',this)">WINNER</button>
+      <button type="button" class="filter-btn inplay" onclick="filterByStatus('IN_PLAY',this)">IN PLAY</button>
+      <button type="button" class="filter-btn eliminated" onclick="filterByStatus('ELIMINATED',this)">ELIMINATED</button>
+    </div>
+    <div class="filter-btns" style="margin-bottom:0;">
+      <button type="button" class="filter-btn all is-active" id="gender-btn-all" onclick="filterByGender('all',this)">♂♀ ทุกประเภท</button>
+      <button type="button" class="filter-btn gender-m" id="gender-btn-M" onclick="filterByGender('M',this)">♂ MEN'S</button>
+      <button type="button" class="filter-btn gender-f" id="gender-btn-F" onclick="filterByGender('F',this)">♀ WOMEN'S</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto;border-radius:14px;border:1px solid rgba(0,229,255,0.15);background:rgba(0,15,35,0.7);backdrop-filter:blur(8px);">
+    <table class="standings-table">
+      <thead>
+        <tr>
+          <th>อันดับ</th><th>รูป</th><th>ชื่อผู้เล่น</th>
+          <th>ทีม/แผนก</th><th>แข่ง</th><th>ชนะ</th><th>แพ้</th>
+          <th>เซต ได้/เสีย</th><th>แต้ม</th><th>% ชนะ</th><th>สถานะ</th>
+        </tr>
+      </thead>
+      <tbody id="standings-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MATCHES -->
+<div class="section" id="tab-matches">
+  <div class="sec-header">
+    <span class="sec-header-icon">⚡</span>
+    <div class="sec-header-en">MATCH SCHEDULE &amp; RESULTS</div>
+    <div class="sec-header-th">ตารางแข่งขัน</div>
+    <div class="sec-header-sub">อัปเดตล่าสุด · COM7 Ping Pong League 2026</div>
+  </div>
+  <div style="position:sticky;top:57px;z-index:90;background:rgba(1,13,26,0.95);backdrop-filter:blur(12px);padding:12px 0 10px;margin-bottom:8px;border-bottom:1px solid rgba(0,229,255,0.1);">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div class="filter-btns" style="margin-bottom:0;" id="match-status-filters">
+        <button type="button" class="filter-btn all is-active" onclick="setMatchFilter('all',this)">ทั้งหมด <span id="badge-all" class="fbadge"></span></button>
+        <button type="button" class="filter-btn inplay" onclick="setMatchFilter('live',this)">🔴 กำลังแข่ง <span id="badge-live" class="fbadge fbadge-live"></span></button>
+        <button type="button" class="filter-btn winner" onclick="setMatchFilter('completed',this)">✓ จบแล้ว <span id="badge-completed" class="fbadge fbadge-done"></span></button>
+        <button type="button" class="filter-btn eliminated" onclick="setMatchFilter('upcoming',this)">⏳ เร็วๆ นี้ <span id="badge-upcoming" class="fbadge"></span></button>
+      </div>
+      <div class="filter-btns" style="margin-bottom:0;">
+        <button type="button" class="filter-btn all" id="match-gender-btn-all" onclick="setMatchGender('all',this)">♂♀ ทุกประเภท</button>
+        <button type="button" class="filter-btn inplay" id="match-gender-btn-M" onclick="setMatchGender('M',this)">♂ MEN'S</button>
+        <button type="button" class="filter-btn" id="match-gender-btn-F" onclick="setMatchGender('F',this)" style="background:rgba(255,128,171,0.12);color:#ff80ab;border:1px solid rgba(255,128,171,0.3);">♀ WOMEN'S</button>
+      </div>
+    </div>
+  </div>
+  <div id="all-matches-list"></div>
+</div>
+
+<div style="text-align:center;padding:28px 0 40px;">
+  <a href="admin.html" style="display:inline-flex;align-items:center;gap:8px;font-family:'Anuphan',sans-serif;font-size:12px;color:var(--muted);letter-spacing:1.5px;text-decoration:none;padding:8px 18px;border:1px solid var(--border2);border-radius:8px;transition:all 0.2s;opacity:0.5;" onmouseover="this.style.opacity='1';this.style.borderColor='rgba(0,229,255,0.3)'" onmouseout="this.style.opacity='0.5';this.style.borderColor='var(--border2)'">
+    ⚙️ ADMIN PANEL
+  </a>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+<div class="pp-loader" id="pp-loader" style="position:fixed;inset:0;z-index:9990;background:var(--dark);">
+  <div class="pp-ball"></div>
+  <div class="pp-loader-text">กำลังโหลดข้อมูล...</div>
+</div>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Supabase Configuration -->
+<script src="supabase-config.js"></script>
+
+<!-- Main App -->
+<script src="assets/app-supabase.js"></script>
+</body>
+</html>

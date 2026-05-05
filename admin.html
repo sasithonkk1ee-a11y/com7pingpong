@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — COM7 Ping Pong League 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&family=Orbitron:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ── LOGIN GATE ─────────────────────────────────────── */
+#login-gate {
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--dark);
+}
+#login-gate::before {
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
+  background-size:50px 50px;animation:gridMove 25s linear infinite;pointer-events:none;
+}
+.login-card {
+  position:relative;z-index:1;
+  background:linear-gradient(160deg,rgba(0,30,55,0.96),rgba(0,12,28,0.99));
+  border:1px solid var(--border);border-radius:20px;
+  padding:40px 36px;width:min(420px,90vw);
+  box-shadow:0 0 60px rgba(0,229,255,0.08),0 24px 60px rgba(0,0,0,0.6);
+}
+.login-icon{font-size:44px;text-align:center;margin-bottom:14px;}
+.login-title{
+  font-family:'Orbitron',monospace;font-size:16px;font-weight:900;
+  color:var(--cyan);letter-spacing:3px;text-align:center;margin-bottom:6px;
+  text-shadow:0 0 20px rgba(0,229,255,0.5);
+}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;}
+.login-label{
+  font-size:13px;color:var(--muted);font-family:'Anuphan',sans-serif;
+  font-weight:600;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:8px;
+}
+.login-input{
+  width:100%;background:rgba(0,15,35,0.9);border:1px solid var(--border);
+  border-radius:10px;padding:14px 18px;color:var(--text);
+  font-family:'Orbitron',monospace;font-size:16px;letter-spacing:4px;
+  outline:none;transition:all 0.2s;margin-bottom:18px;text-align:center;
+}
+.login-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,0.1);}
+.login-input.shake{animation:shake 0.35s ease;border-color:var(--lose);}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+.login-btn{
+  width:100%;padding:15px;background:var(--cyan);color:#000;
+  border:none;border-radius:10px;font-family:'Anuphan',sans-serif;
+  font-size:16px;font-weight:700;letter-spacing:1px;
+  cursor:pointer;box-shadow:0 0 20px rgba(0,229,255,0.3);transition:all 0.2s;
+}
+.login-btn:hover{background:#00f0ff;transform:translateY(-2px);}
+.login-error{font-size:14px;color:var(--lose);text-align:center;margin-top:12px;min-height:18px;font-family:'Anuphan',sans-serif;opacity:0;transition:opacity 0.2s;}
+.login-error.show{opacity:1;}
+.login-back{display:block;text-align:center;margin-top:20px;font-size:14px;color:var(--muted);text-decoration:none;font-family:'Anuphan',sans-serif;transition:color 0.2s;}
+.login-back:hover{color:var(--cyan);}
+.login-attempts{font-size:13px;color:var(--muted);text-align:center;margin-top:8px;font-family:'Anuphan',sans-serif;opacity:0.6;}
+
+/* ── ADMIN CONTENT ──────────────────────────────────── */
+#admin-content{display:none;}
+#admin-content.unlocked{display:block;}
+
+/* ── TOPBAR ─────────────────────────────────────────── */
+.admin-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;background:rgba(2,21,37,0.98);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(16px);
+  position:sticky;top:0;z-index:100;gap:12px;
+}
+.admin-topbar-logo{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;
+  color:var(--cyan);letter-spacing:2px;text-shadow:0 0 12px rgba(0,229,255,0.4);flex:1;
+}
+.admin-topbar-badge{
+  background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.3);
+  color:var(--lose);font-family:'Anuphan',sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:0.5px;padding:6px 14px;border-radius:4px;
+}
+.logout-btn{
+  background:transparent;border:1px solid var(--border2);color:var(--muted);
+  font-family:'Anuphan',sans-serif;font-size:14px;font-weight:600;
+  letter-spacing:0.3px;padding:8px 18px;border-radius:6px;cursor:pointer;transition:all 0.2s;
+}
+.logout-btn:hover{border-color:var(--lose);color:var(--lose);}
+
+/* ── PLAYER TABLE ───────────────────────────────────── */
+.player-mgmt-table{width:100%;border-collapse:collapse;}
+.player-mgmt-table th{
+  background:linear-gradient(90deg,rgba(0,50,100,0.9),rgba(0,35,75,0.9));
+  color:#7ec8e3;font-family:'Anuphan',sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  padding:14px 18px;text-align:left;border-bottom:2px solid rgba(0,229,255,0.3);
+}
+.player-mgmt-table td{
+  padding:14px 18px;border-bottom:1px solid rgba(0,229,255,0.08);
+  color:var(--text);vertical-align:middle;font-size:15px;
+  font-family:'Anuphan',sans-serif;
+}
+.player-mgmt-table tr:hover td{background:rgba(0,229,255,0.05);}
+.btn-edit{
+  background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.4);
+  color:var(--cyan);font-size:13px;font-family:'Anuphan',sans-serif;
+  font-weight:700;letter-spacing:0.3px;padding:8px 18px;
+  border-radius:6px;cursor:pointer;transition:all 0.2s;
+}
+.btn-edit:hover{background:rgba(0,229,255,0.25);transform:translateY(-1px);}
+.btn-del{
+  background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.4);
+  color:var(--lose);font-size:13px;font-family:'Anuphan',sans-serif;
+  font-weight:700;letter-spacing:0.3px;padding:8px 18px;
+  border-radius:6px;cursor:pointer;transition:all 0.2s;margin-left:6px;
+}
+.btn-del:hover{background:rgba(255,68,102,0.25);transform:translateY(-1px);}
+
+/* ── EDIT MODAL ─────────────────────────────────────── */
+#edit-modal{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;}
+#edit-modal.open{display:flex;}
+.edit-modal-card{
+  background:linear-gradient(160deg,rgba(0,30,55,0.98),rgba(0,12,28,0.99));
+  border:1px solid var(--border);border-radius:16px;
+  padding:32px 28px;width:min(480px,92vw);
+  box-shadow:0 0 60px rgba(0,229,255,0.1);
+}
+.edit-modal-title{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;
+  color:var(--cyan);letter-spacing:2px;margin-bottom:22px;
+}
+
+/* ── ADMIN OVERRIDES (larger than index) ────────────── */
+.admin-panel{padding:26px;}
+.admin-title{font-size:15px !important;letter-spacing:2px;}
+.form-label{font-size:13px !important;}
+.form-input,.form-select{font-size:15px !important;padding:13px 16px !important;}
+.btn{font-size:15px !important;padding:13px 28px !important;}
+.section-title{font-size:22px !important;}
+.section-sub{font-size:15px !important;}
+.status-badge{font-size:12px !important;padding:5px 12px !important;}
+.bracket-slot select{font-size:14px !important;padding:9px 12px !important;}
+.bracket-slot-num{font-size:13px !important;min-width:26px;}
+
+/* Toast — บนสุดกลางหน้าจอ */
+#toast{
+  position:fixed !important;
+  top:20px !important;
+  bottom:auto !important;
+  left:50% !important;
+  transform:translateX(-50%) translateY(-120px) !important;
+}
+#toast.show{
+  transform:translateX(-50%) translateY(0) !important;
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-gate">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">ADMIN ACCESS</div>
+    <div class="login-sub">COM7 Ping Pong League 2026 · Restricted</div>
+    <label class="login-label" for="pwd-input">รหัสผ่าน</label>
+    <input class="login-input" id="pwd-input" type="password" placeholder="••••••••" maxlength="32" autocomplete="current-password" onkeydown="if(event.key==='Enter') tryLogin()"/>
+    <button type="button" class="login-btn" onclick="tryLogin()">🔓 เข้าสู่ระบบ</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-attempts" id="login-attempts"></div>
+    <a href="index.html" class="login-back">← กลับหน้าหลัก</a>
+  </div>
+</div>
+
+<!-- ADMIN CONTENT -->
+<div id="admin-content">
+  <div class="page">
+
+    <div class="admin-topbar">
+      <div class="admin-topbar-logo">⚙️ COM7 ADMIN</div>
+      <span class="admin-topbar-badge">🔒 PRIVATE</span>
+      <button type="button" class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+    </div>
+
+    <div style="padding:24px 18px;">
+      <div class="section-title">จัดการข้อมูล</div>
+      <div class="section-sub">เพิ่ม / แก้ไข ข้อมูลการแข่งขัน</div>
+
+      <!-- PLAYER LIST -->
+      <div class="admin-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+          <div class="admin-title" style="margin-bottom:0;">👥 รายชื่อผู้แข่งขันทั้งหมด</div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" id="pmgmt-btn-all" onclick="filterPlayerMgmt('all',this)"
+              class="filter-btn all is-active">ทั้งหมด</button>
+            <button type="button" id="pmgmt-btn-M" onclick="filterPlayerMgmt('M',this)"
+              class="filter-btn gender-m">♂ MEN'S</button>
+            <button type="button" id="pmgmt-btn-F" onclick="filterPlayerMgmt('F',this)"
+              class="filter-btn gender-f">♀ WOMEN'S</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;border-radius:10px;border:1px solid rgba(0,229,255,0.15);">
+          <table class="player-mgmt-table">
+            <thead><tr>
+              <th>#</th><th>ชื่อ</th><th>ทีม</th><th>ประเภท</th><th>แต้ม</th><th>สถานะ</th><th>จัดการ</th>
+            </tr></thead>
+            <tbody id="player-mgmt-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADD PLAYER -->
+      <div class="admin-panel">
+        <div class="admin-title">➕ เพิ่มผู้เล่น</div>
+        <div style="text-align:center;margin-bottom:18px;">
+          <div class="photo-preview" id="photo-prev" onclick="document.getElementById('photo-inp').click()">
+            <span id="photo-ph">📷</span>
+            <img id="photo-img" src="" style="display:none;"/>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;">กดเพื่อเพิ่มรูปผู้เล่น</div>
+          <input type="file" id="photo-inp" accept="image/*" style="display:none;" onchange="handlePhoto(event)">
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">ชื่อผู้เล่น</label><input class="form-input" id="new-player-name" placeholder="A. JAYDEN"/></div>
+          <div class="form-group"><label class="form-label">ทีม / แผนก</label><input class="form-input" id="new-player-team" placeholder="ทีม/แผนก"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">ประเภท</label>
+            <select class="form-select" id="new-player-gender">
+              <option value="M">ชาย (Men's)</option><option value="F">หญิง (Women's)</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">สถานะ</label>
+            <select class="form-select" id="new-player-status">
+              <option value="IN_PLAY">IN_PLAY</option><option value="WINNER">WINNER</option><option value="ELIMINATED">ELIMINATED</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="addPlayer()" style="display:block;margin-left:auto;">➕ เพิ่มผู้เล่น</button>
+      </div>
+
+      <!-- MATCH LIST -->
+      <div class="admin-panel">
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+            <div class="admin-title" style="margin-bottom:0;">📋 รายการแข่งขันทั้งหมด</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" id="mmgmt-btn-all" onclick="setAdminMatchFilter('all',this)"
+                class="filter-btn all">ทั้งหมด</button>
+              <button type="button" id="mmgmt-btn-live" onclick="setAdminMatchFilter('live',this)"
+                class="filter-btn" style="padding:7px 16px;border-radius:20px;border:1px solid rgba(255,51,85,0.3);background:rgba(255,51,85,0.1);color:#ff3355;font-family:'Anuphan',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;">🔴 LIVE</button>
+              <button type="button" id="mmgmt-btn-completed" onclick="setAdminMatchFilter('completed',this)"
+                class="filter-btn winner">✓ จบแล้ว</button>
+              <button type="button" id="mmgmt-btn-upcoming" onclick="setAdminMatchFilter('upcoming',this)"
+                class="filter-btn" style="padding:7px 16px;border-radius:20px;border:1px solid rgba(100,170,200,0.25);background:rgba(100,170,200,0.08);color:#64aacc;font-family:'Anuphan',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;">⏳ รอแข่ง</button>
+            </div>
+          </div>
+          <!-- Gender tab bar -->
+          <div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid rgba(0,229,255,0.15);">
+            <button type="button" id="mmgmt-btn-M" onclick="setAdminMatchGender('M',this)"
+              class="filter-btn gender-m" style="flex:1;padding:11px;border-right:1px solid rgba(0,229,255,0.1);font-family:'Anuphan',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;">♂ MEN'S</button>
+            <button type="button" id="mmgmt-btn-F" onclick="setAdminMatchGender('F',this)"
+              class="filter-btn gender-f" style="flex:1;padding:11px;font-family:'Anuphan',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;">♀ WOMEN'S</button>
+          </div>
+        </div>
+        <div id="match-mgmt-body"></div>
+      </div>
+
+      <!-- BRACKET SETUP -->
+      <div class="admin-panel">
+        <div class="admin-title">🎯 จับคู่สายการแข่งขัน</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">ประเภท</label>
+            <select class="form-select" id="bracket-setup-gender" onchange="renderBracketSetup()">
+              <option value="M">Men's</option><option value="F">Women's</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">รอบ</label>
+            <select class="form-select" id="bracket-setup-round" onchange="renderBracketSetup()">
+              <option>Round of 32</option><option>Round of 16</option>
+              <option>Quarter Final</option><option>Semi Final</option><option>Final</option>
+            </select>
+          </div>
+        </div>
+        <div id="bracket-setup-body" style="margin-top:10px;"></div>
+        <div style="margin-top:14px;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
+          <div style="font-size:13px;color:var(--muted);flex:1;min-width:180px;">* เลือกผู้เล่นทั้งสองฝั่ง แล้วกดปุ่มบันทึกเพื่อยืนยัน</div>
+          <button type="button" class="btn btn-primary" onclick="saveBracketSetup()" style="background:var(--win);color:#000;box-shadow:0 0 16px rgba(0,229,160,0.3);">💾 บันทึกการจับคู่</button>
+        </div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="admin-panel" style="border-color:rgba(255,68,102,0.3);">
+        <div class="admin-title" style="color:var(--lose);">⚠️ จัดการข้อมูล</div>
+        <div style="font-size:14px;color:var(--muted);margin-bottom:14px;">Export ข้อมูล หรือล้างข้อมูลทั้งหมดออกจากระบบ</div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" onclick="exportData()">💾 Export JSON</button>
+          <button type="button" class="btn btn-gold" onclick="recalcStandings()">🔄 อัปเดตสถานะทั้งหมด</button>
+          <button type="button" class="btn btn-danger" onclick="resetData()">🗑️ ล้างข้อมูลทั้งหมด</button>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:16px 0 40px;">
+        <a href="index.html" style="font-family:'Anuphan',sans-serif;font-size:14px;color:var(--muted);letter-spacing:1px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">
+          ← กลับหน้าหลัก (Public)
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- CONFIRM RESET MODAL -->
+<div id="confirm-reset-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(160deg,rgba(0,30,55,0.98),rgba(0,12,28,0.99));border:1px solid rgba(255,68,102,0.4);border-radius:16px;padding:32px 28px;width:min(420px,90vw);box-shadow:0 0 40px rgba(255,68,102,0.15);">
+    <div style="font-size:32px;text-align:center;margin-bottom:12px;">⚠️</div>
+    <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:#f85149;letter-spacing:2px;text-align:center;margin-bottom:8px;">ยืนยันการลบข้อมูล</div>
+    <div style="font-family:'Anuphan',sans-serif;font-size:14px;color:rgba(255,255,255,0.6);text-align:center;margin-bottom:24px;line-height:1.6;">ผู้เล่นและแมตช์ทั้งหมดจะถูกลบออกจากระบบ<br>การกระทำนี้ไม่สามารถย้อนกลับได้</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button type="button" onclick="document.getElementById('confirm-reset-modal').style.display='none';_doResetData();"
+        style="background:#f85149;border:none;color:#fff;font-family:'Anuphan',sans-serif;font-size:15px;font-weight:700;padding:12px 28px;border-radius:8px;cursor:pointer;">
+        🗑️ ยืนยันลบ
+      </button>
+      <button type="button" onclick="document.getElementById('confirm-reset-modal').style.display='none';"
+        style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Anuphan',sans-serif;font-size:15px;font-weight:600;padding:12px 28px;border-radius:8px;cursor:pointer;">
+        ยกเลิก
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM MODAL -->
+<div id="custom-confirm-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(160deg,rgba(0,30,55,0.98),rgba(0,12,28,0.99));border:1px solid rgba(255,68,102,0.4);border-radius:16px;padding:32px 28px;width:min(420px,90vw);box-shadow:0 0 40px rgba(255,68,102,0.15);">
+    <div style="font-size:32px;text-align:center;margin-bottom:12px;">⚠️</div>
+    <div id="custom-confirm-msg" style="font-family:'Anuphan',sans-serif;font-size:15px;color:rgba(255,255,255,0.8);text-align:center;margin-bottom:24px;line-height:1.6;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button type="button" id="custom-confirm-ok"
+        style="background:#f85149;border:none;color:#fff;font-family:'Anuphan',sans-serif;font-size:15px;font-weight:700;padding:12px 28px;border-radius:8px;cursor:pointer;">
+        ✅ ยืนยัน
+      </button>
+      <button type="button" id="custom-confirm-cancel"
+        style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Anuphan',sans-serif;font-size:15px;font-weight:600;padding:12px 28px;border-radius:8px;cursor:pointer;">
+        ยกเลิก
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Override window.confirm ด้วย custom modal
+window.confirm = function(msg) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('custom-confirm-modal');
+    var msgEl = document.getElementById('custom-confirm-msg');
+    var okBtn = document.getElementById('custom-confirm-ok');
+    var cancelBtn = document.getElementById('custom-confirm-cancel');
+    msgEl.textContent = msg;
+    modal.style.display = 'flex';
+    function cleanup() { modal.style.display = 'none'; okBtn.onclick = null; cancelBtn.onclick = null; }
+    okBtn.onclick = function() { cleanup(); resolve(true); };
+    cancelBtn.onclick = function() { cleanup(); resolve(false); };
+  });
+};
+</script>
+
+<!-- EDIT MATCH MODAL -->
+<div id="edit-match-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+  <div class="edit-modal-card" style="width:min(560px,94vw);">
+    <div class="edit-modal-title">✏️ แก้ไขผลการแข่งขัน</div>
+    <input type="hidden" id="edit-match-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ผู้เล่น A</label><select class="form-select" id="edit-match-p1"></select></div>
+      <div class="form-group"><label class="form-label">ผู้เล่น B</label><select class="form-select" id="edit-match-p2"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">คะแนน A (เซต)</label><input class="form-input" id="edit-match-score1" type="number" min="0" max="9"/></div>
+      <div class="form-group"><label class="form-label">คะแนน B (เซต)</label><input class="form-input" id="edit-match-score2" type="number" min="0" max="9"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">รอบ</label>
+        <select class="form-select" id="edit-match-round">
+          <option>Round of 32</option><option>Round of 16</option>
+          <option>Quarter Final</option><option>Semi Final</option><option>Final</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">ประเภท</label>
+        <select class="form-select" id="edit-match-gender" onchange="updateEditPlayerDropdownsByGender()">
+          <option value="M">Men's</option><option value="F">Women's</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">วันที่แข่งขัน</label><input class="form-input" id="edit-match-date" type="date"/></div>
+      <div class="form-group"><label class="form-label">เวลา</label><input class="form-input" id="edit-match-time" type="time"/></div>
+    </div>
+    <div class="form-group" style="margin-bottom:18px;"><label class="form-label">สถานะ</label>
+      <select class="form-select" id="edit-match-status">
+        <option value="completed">จบแล้ว</option><option value="live">LIVE 🔴</option><option value="upcoming">ยังไม่แข่ง</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" onclick="saveEditMatch()">💾 บันทึก</button>
+      <button type="button" class="btn" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);" onclick="closeEditMatchModal()">ยกเลิก</button>
+      <button type="button" class="btn btn-gold" onclick="recalcStandings()">🔄 คำนวณคะแนนใหม่</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PLAYER MODAL -->
+<div id="edit-modal">
+  <div class="edit-modal-card">
+    <div class="edit-modal-title">✏️ แก้ไขข้อมูลผู้เล่น</div>
+    <input type="hidden" id="edit-player-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ชื่อผู้เล่น</label><input class="form-input" id="edit-player-name"/></div>
+      <div class="form-group"><label class="form-label">ทีม / แผนก</label><input class="form-input" id="edit-player-team"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ประเภท</label>
+        <select class="form-select" id="edit-player-gender">
+          <option value="M">ชาย (Men's)</option><option value="F">หญิง (Women's)</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">สถานะ</label>
+        <select class="form-select" id="edit-player-status">
+          <option value="IN_PLAY">IN_PLAY</option><option value="WINNER">WINNER</option><option value="ELIMINATED">ELIMINATED</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">แต้มสะสม</label><input class="form-input" id="edit-player-points" type="number" min="0"/></div>
+      <div class="form-group"><label class="form-label">แมตช์ที่เล่น</label><input class="form-input" id="edit-player-played" type="number" min="0"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ชนะ</label><input class="form-input" id="edit-player-wins" type="number" min="0"/></div>
+      <div class="form-group"><label class="form-label">แพ้</label><input class="form-input" id="edit-player-losses" type="number" min="0"/></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'Anuphan',sans-serif;">
+      ⚙️ แต้ม/ชนะ/แพ้ คำนวณอัตโนมัติจากผลแมตช์ที่บันทึกไว้
+    </div>
+    <div class="btn-row" style="margin-top:10px;">
+      <button type="button" class="btn btn-primary" onclick="saveEditPlayer()">💾 บันทึก</button>
+      <button type="button" class="btn" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);" onclick="closeEditModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Supabase Configuration -->
+<script src="supabase-config.js"></script>
+
+<!-- Main App -->
+<script src="assets/app-supabase.js"></script>
+<script>
+var ADMIN_PASSWORD = 'com7admin2026';
+var SESSION_KEY    = 'com7_admin_auth';
+var MAX_ATTEMPTS   = 5;
+var LOCKOUT_MS     = 5 * 60 * 1000;
+
+function getAttemptData(){
+  try{ return JSON.parse(sessionStorage.getItem('com7_attempts')||'{"count":0,"lockedUntil":0}'); }catch(e){ return {count:0,lockedUntil:0}; }
+}
+function saveAttemptData(d){ try{ sessionStorage.setItem('com7_attempts',JSON.stringify(d)); }catch(e){} }
+
+function tryLogin(){
+  var inp=document.getElementById('pwd-input');
+  var errEl=document.getElementById('login-error');
+  var attEl=document.getElementById('login-attempts');
+  var a=getAttemptData(); var now=Date.now();
+  
+  if(a.lockedUntil && now<a.lockedUntil){
+    errEl.textContent='🔒 ถูกล็อค กรุณารอ '+Math.ceil((a.lockedUntil-now)/1000)+' วินาที';
+    errEl.classList.add('show'); inp.value=''; return;
+  }
+  
+  if(inp.value===ADMIN_PASSWORD){
+    try{ sessionStorage.setItem(SESSION_KEY,'1'); }catch(e){}
+    saveAttemptData({count:0,lockedUntil:0});
+    document.getElementById('login-gate').style.display='none';
+    document.getElementById('admin-content').classList.add('unlocked');
+    populatePlayerSelects(); renderBracketSetup(); renderPlayerMgmt(); renderMatchMgmt();
+  } else {
+    a.count++;
+    if(a.count>=MAX_ATTEMPTS){ a.lockedUntil=Date.now()+LOCKOUT_MS; a.count=0; errEl.textContent='🔒 พยายามมากเกินไป ล็อค 5 นาที'; attEl.textContent=''; }
+    else { errEl.textContent='❌ รหัสผ่านไม่ถูกต้อง'; attEl.textContent='เหลือ '+(MAX_ATTEMPTS-a.count)+' ครั้ง'; }
+    saveAttemptData(a); errEl.classList.add('show');
+    inp.classList.add('shake'); inp.value='';
+    setTimeout(function(){ inp.classList.remove('shake'); },400);
+  }
+}
+
+async function logout(){
+  try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
+  document.getElementById('admin-content').classList.remove('unlocked');
+  document.getElementById('login-gate').style.display='flex';
+  document.getElementById('pwd-input').value='';
+  document.getElementById('login-error').classList.remove('show');
+}
+
+(function(){
+  try {
+    if(sessionStorage.getItem(SESSION_KEY)==='1'){
+      document.getElementById('login-gate').style.display='none';
+      document.getElementById('admin-content').classList.add('unlocked');
+      populatePlayerSelects(); renderBracketSetup(); renderPlayerMgmt(); renderMatchMgmt();
+    }
+  } catch(e) {
+    console.error('Error checking session:', e);
+  }
+})();
+</script>
+</body>
+</html>
