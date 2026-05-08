@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, initial-scale=1.0">
+<title>COM7 Ping Pong League 2026 — KIOSK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&family=Orbitron:wght@400;700;900&display=swap">
+<style>
+/* ── Reset & Base ─────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --cyan:#00e5ff;--gold:#ffd700;--win:#00e5a0;--lose:#ff4466;--live:#ff3355;
+  --dark:#010d1a;--border:rgba(0,229,255,0.22);--border2:rgba(0,229,255,0.08);
+  --muted:#6aacca;--text:#dff2ff;
+}
+
+/* ── Kiosk: 1080×1920 portrait ───────────────────────── */
+html,body{
+  width:1080px;
+  height:1920px;
+  overflow:hidden;
+  background:var(--dark);
+  font-family:'Anuphan',sans-serif;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Auto-rotate if screen is landscape ──────────────── */
+@media screen and (orientation:landscape){
+  body{
+    transform-origin:top left;
+    transform:rotate(90deg) translateY(-100%);
+    width:100vh;
+    height:100vw;
+  }
+}
+
+/* ── Background grid ─────────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(0,90,180,0.3) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── Scrollbar hidden ────────────────────────────────── */
+::-webkit-scrollbar{display:none;}
+
+/* ── Layout ──────────────────────────────────────────── */
+.kiosk-wrap{
+  position:relative;z-index:1;
+  width:1080px;height:1920px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.k-header{
+  padding:40px 48px 32px;
+  background:linear-gradient(180deg,rgba(0,20,50,0.98),rgba(0,10,30,0.9));
+  border-bottom:2px solid var(--border);
+  text-align:center;
+  flex-shrink:0;
+}
+.k-logo{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(36px,4vw,56px);
+  font-weight:900;color:var(--cyan);
+  letter-spacing:4px;
+  text-shadow:0 0 40px rgba(0,229,255,0.6);
+  margin-bottom:8px;
+}
+.k-subtitle{
+  font-size:clamp(18px,2vw,26px);
+  color:rgba(255,255,255,0.5);
+  letter-spacing:2px;
+}
+
+/* ── Top Players Podium ──────────────────────────────── */
+.k-podium-section{
+  padding:32px 48px;
+  background:linear-gradient(180deg,rgba(0,15,40,0.95),rgba(0,10,30,0.9));
+  border-bottom:1px solid var(--border2);
+  flex-shrink:0;
+}
+.k-podium-title{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(20px,2.5vw,32px);
+  font-weight:700;color:#fff;
+  letter-spacing:3px;text-align:center;
+  margin-bottom:24px;
+  text-shadow:0 0 20px rgba(255,255,255,0.15);
+}
+.k-podium-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+}
+.k-podium-label{
+  text-align:center;font-size:18px;font-weight:700;
+  letter-spacing:2px;margin-bottom:16px;
+  font-family:'Anuphan',sans-serif;
+}
+.k-podium-row{
+  display:flex;justify-content:center;align-items:flex-end;gap:12px;
+}
+.k-podium-card{
+  display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(160deg,rgba(0,35,65,0.9),rgba(0,18,38,0.95));
+  border:1px solid var(--border);border-radius:16px;
+  padding:16px 12px;flex:1;max-width:160px;
+  position:relative;
+}
+.k-podium-card.rank-1{
+  border-color:var(--gold);
+  box-shadow:0 0 30px rgba(255,215,0,0.3);
+  transform:scale(1.05);
+}
+.k-rank-badge{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;
+  background:linear-gradient(135deg,#ffd700,#ffaa00);color:#000;
+  box-shadow:0 0 12px rgba(255,200,0,0.5);
+}
+.k-podium-card.rank-2 .k-rank-badge{background:linear-gradient(135deg,#e8e8e8,#aaa);}
+.k-podium-card.rank-3 .k-rank-badge{background:linear-gradient(135deg,#cd7f32,#a0522d);}
+.k-avatar{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(0,229,255,0.1);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin:8px 0;overflow:hidden;
+}
+.k-avatar img{width:100%;height:100%;object-fit:cover;}
+.k-podium-name{
+  font-size:clamp(14px,1.5vw,18px);font-weight:700;
+  text-align:center;color:#fff;margin-bottom:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:140px;
+}
+.k-podium-pts{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(12px,1.2vw,16px);
+  color:var(--gold);font-weight:700;
+}
+
+/* ── Stats Bar ───────────────────────────────────────── */
+.k-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;border-bottom:1px solid var(--border2);
+  flex-shrink:0;
+}
+.k-stat{
+  padding:24px 16px;text-align:center;
+  border-right:1px solid var(--border2);
+  background:rgba(0,10,25,0.8);
+}
+.k-stat:last-child{border-right:none;}
+.k-stat-num{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(32px,4vw,52px);
+  font-weight:900;line-height:1;margin-bottom:6px;
+}
+.k-stat-num.cyan{color:var(--cyan);text-shadow:0 0 20px rgba(0,229,255,0.5);}
+.k-stat-num.gold{color:var(--gold);text-shadow:0 0 20px rgba(255,215,0,0.5);}
+.k-stat-num.red{color:var(--live);text-shadow:0 0 20px rgba(255,51,85,0.5);}
+.k-stat-label{font-size:clamp(14px,1.5vw,20px);color:var(--muted);}
+
+/* ── Section Title ───────────────────────────────────── */
+.k-section-title{
+  padding:24px 48px 16px;
+  font-family:'Anuphan',sans-serif;
+  font-size:clamp(20px,2.5vw,32px);
+  font-weight:700;color:var(--cyan);
+  letter-spacing:1px;
+  text-shadow:0 0 20px rgba(0,229,255,0.5);
+  flex-shrink:0;
+}
+
+/* ── Match Cards ─────────────────────────────────────── */
+.k-matches{
+  flex:1;overflow:hidden;
+  padding:0 48px 32px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.k-match-card{
+  background:linear-gradient(160deg,rgba(0,35,65,0.92),rgba(0,18,38,0.97));
+  border:1px solid var(--border);border-radius:20px;
+  padding:24px 32px;
+  display:grid;grid-template-columns:140px 1fr 140px;
+  align-items:center;
+  flex-shrink:0;
+}
+.k-match-card.live{
+  border-color:var(--live);
+  box-shadow:0 0 30px rgba(255,51,85,0.3);
+  animation:livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse{
+  0%,100%{box-shadow:0 0 30px rgba(255,51,85,0.3);}
+  50%{box-shadow:0 0 50px rgba(255,51,85,0.6);}
+}
+.k-match-center{
+  display:flex;align-items:center;justify-content:center;
+}
+.k-player-name{
+  font-size:clamp(24px,2.8vw,36px);
+  font-weight:700;font-family:'Anuphan',sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#f0f0f0;
+}
+.k-player-name.left{text-align:right;padding-right:20px;flex:1;}
+.k-player-name.right{text-align:left;padding-left:20px;flex:1;}
+.k-player-name.winner{color:var(--win);}
+.k-player-name.loser{color:rgba(255,255,255,0.25);}
+.k-score-box{
+  min-width:120px;height:72px;
+  background:rgba(0,0,0,0.4);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  gap:4px;flex-shrink:0;
+}
+.k-score-box.done{border-color:rgba(0,229,160,0.3);}
+.k-score-box.live-box{border-color:rgba(255,51,85,0.5);}
+.k-score-num{
+  font-size:clamp(40px,5vw,64px);
+  font-weight:900;font-family:Arial,sans-serif;
+  width:44px;text-align:center;
+}
+.k-score-num.win{color:#fff;}
+.k-score-num.lose{color:rgba(255,255,255,0.2);}
+.k-score-num.neutral{color:rgba(255,255,255,0.3);}
+.k-score-sep{font-size:28px;color:rgba(255,255,255,0.2);}
+.k-match-info{
+  display:flex;flex-direction:column;align-items:flex-end;gap:6px;
+}
+.k-match-round{
+  font-size:14px;color:var(--muted);
+  font-family:'Anuphan',sans-serif;
+}
+.k-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:13px;font-weight:700;
+  padding:4px 12px;border-radius:6px;
+  font-family:'Anuphan',sans-serif;
+}
+.k-badge.men{background:rgba(100,181,246,0.15);color:#64b5f6;border:1px solid rgba(100,181,246,0.3);}
+.k-badge.women{background:rgba(244,143,177,0.15);color:#f48fb1;border:1px solid rgba(244,143,177,0.3);}
+.k-badge.live-badge{background:rgba(255,51,85,0.15);color:var(--live);border:1px solid rgba(255,51,85,0.35);}
+.k-badge.done-badge{background:rgba(0,229,160,0.1);color:var(--win);border:1px solid rgba(0,229,160,0.25);}
+.k-live-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--live);
+  animation:pulse 1.2s ease-in-out infinite;
+  box-shadow:0 0 8px var(--live);
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.k-match-date{font-size:13px;color:var(--muted);font-family:'Anuphan',sans-serif;}
+
+/* ── Ticker / Auto-refresh indicator ────────────────── */
+.k-footer{
+  padding:16px 48px;
+  background:rgba(0,5,15,0.95);
+  border-top:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.k-footer-brand{
+  font-family:'Orbitron',monospace;
+  font-size:16px;color:var(--cyan);letter-spacing:2px;
+  opacity:0.7;
+}
+.k-refresh-indicator{
+  display:flex;align-items:center;gap:8px;
+  font-size:14px;color:var(--muted);
+}
+.k-refresh-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--win);
+  animation:pulse 2s ease-in-out infinite;
+}
+</style>
+</head>
+<body>
+<div class="kiosk-wrap">
+
+  <!-- Header -->
+  <div class="k-header">
+    <div class="k-logo">🏓 COM7 PING PONG LEAGUE</div>
+    <div class="k-subtitle">2026 · TOURNAMENT</div>
+  </div>
+
+  <!-- Top Players -->
+  <div class="k-podium-section">
+    <div class="k-podium-title">🏆 TOP PLAYERS</div>
+    <div class="k-podium-grid">
+      <div>
+        <div class="k-podium-label" style="color:#64b5f6;">♂ MEN'S</div>
+        <div class="k-podium-row" id="k-men-podium"></div>
+      </div>
+      <div>
+        <div class="k-podium-label" style="color:#f48fb1;">♀ WOMEN'S</div>
+        <div class="k-podium-row" id="k-women-podium"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="k-stats">
+    <div class="k-stat">
+      <div class="k-stat-num cyan" id="k-stat-players">0</div>
+      <div class="k-stat-label">ผู้เล่น</div>
+    </div>
+    <div class="k-stat">
+      <div class="k-stat-num gold" id="k-stat-matches">0</div>
+      <div class="k-stat-label">การแข่งขัน</div>
+    </div>
+    <div class="k-stat">
+      <div class="k-stat-num red" id="k-stat-live">0</div>
+      <div class="k-stat-label">🔴 LIVE</div>
+    </div>
+    <div class="k-stat">
+      <div class="k-stat-num" style="color:var(--cyan);font-size:28px;" id="k-stat-next">—</div>
+      <div class="k-stat-label">แข่งต่อไป</div>
+    </div>
+  </div>
+
+  <!-- Recent Matches -->
+  <div class="k-section-title">⚡ การแข่งขันล่าสุด</div>
+  <div class="k-matches" id="k-matches-list"></div>
+
+  <!-- Footer -->
+  <div class="k-footer">
+    <div class="k-footer-brand">COM7 PING PONG LEAGUE 2026</div>
+    <div class="k-refresh-indicator">
+      <div class="k-refresh-dot"></div>
+      <span id="k-refresh-countdown">รีเฟรชใน 30 วินาที</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────
+var state = { players: [], matches: [] };
+
+// ── Load Data ──────────────────────────────────────────
+async function loadData() {
+  try {
+    if (window.supabaseClient) {
+      var r1 = await supabaseClient.from('players').select('*').order('points', { ascending: false });
+      var r2 = await supabaseClient.from('matches').select('*').order('scheduled_at', { ascending: true });
+      if (!r1.error) state.players = (r1.data || []).map(function(p) {
+        return {
+          id: p.id, name: p.name, team: p.team,
+          gender: p.gender === 'women' ? 'F' : 'M',
+          wins: p.wins || 0, losses: p.losses || 0,
+          points: p.points || 0, photo: p.photo_url,
+          status: p.status === 'winner' ? 'WINNER' : p.status === 'eliminated' ? 'ELIMINATED' : 'IN_PLAY'
+        };
+      });
+      if (!r2.error) state.matches = (r2.data || []).map(function(m) {
+        return {
+          id: m.id, p1: m.player1_name || '', p2: m.player2_name || '',
+          score1: m.score1 || 0, score2: m.score2 || 0,
+          round: m.round || '', gender: m.gender === 'women' ? 'F' : 'M',
+          status: m.status === 'finished' ? 'completed' : m.status === 'live' ? 'live' : 'upcoming',
+          date: m.scheduled_at ? m.scheduled_at.split('T')[0] : '',
+          time: m.scheduled_at ? (m.scheduled_at.split('T')[1] || '').substring(0, 5) : ''
+        };
+      });
+    } else {
+      var s = localStorage.getItem('com7v3');
+      if (s) { var d = JSON.parse(s); state.players = d.players || []; state.matches = d.matches || []; }
+    }
+  } catch(e) {
+    var s = localStorage.getItem('com7v3');
+    if (s) { var d = JSON.parse(s); state.players = d.players || []; state.matches = d.matches || []; }
+  }
+  renderAll();
+}
+
+// ── Render ─────────────────────────────────────────────
+function rankSort(a, b) {
+  if (b.points !== a.points) return b.points - a.points;
+  return 0;
+}
+
+function renderPodium(containerId, gender) {
+  var players = state.players.filter(function(p) { return p.gender === gender; }).sort(rankSort).slice(0, 3);
+  var order = [players[1], players[0], players[2]];
+  var ranks = [2, 1, 3];
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = order.map(function(p, i) {
+    if (!p) return '<div class="k-podium-card" style="opacity:0.2;flex:1;max-width:160px;"><div style="padding:40px;font-size:40px;text-align:center;">?</div></div>';
+    var ava = p.photo
+      ? '<div class="k-avatar"><img src="' + p.photo + '"/></div>'
+      : '<div class="k-avatar">' + (gender === 'F' ? '👩' : '👨') + '</div>';
+    return '<div class="k-podium-card rank-' + ranks[i] + '">' +
+      '<div class="k-rank-badge">' + ranks[i] + '</div>' +
+      ava +
+      '<div class="k-podium-name">' + p.name + '</div>' +
+      '<div class="k-podium-pts">' + p.points + ' pts</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderStats() {
+  document.getElementById('k-stat-players').textContent = state.players.length;
+  document.getElementById('k-stat-matches').textContent = state.matches.filter(function(m) { return m.status === 'completed'; }).length;
+  document.getElementById('k-stat-live').textContent = state.matches.filter(function(m) { return m.status === 'live'; }).length;
+  var upcoming = state.matches.filter(function(m) { return m.status === 'upcoming' && m.date; })
+    .sort(function(a, b) { return (a.date + 'T' + (a.time||'')).localeCompare(b.date + 'T' + (b.time||'')); });
+  var el = document.getElementById('k-stat-next');
+  if (upcoming.length) {
+    var nx = upcoming[0];
+    var d = new Date(nx.date);
+    var days = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+    var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    el.innerHTML = days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + (nx.time ? '<br>' + nx.time + ' น.' : '');
+  } else {
+    el.textContent = '—';
+  }
+}
+
+function renderMatches() {
+  var list = state.matches.filter(function(m) {
+    return m.status === 'completed' || m.status === 'live';
+  }).slice().reverse().slice(0, 6);
+
+  var container = document.getElementById('k-matches-list');
+  if (!container) return;
+
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:60px;font-size:24px;">ยังไม่มีผลการแข่งขัน</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(function(m) {
+    var isDone = m.status === 'completed';
+    var isLive = m.status === 'live';
+    var w1 = isDone && m.score1 > m.score2;
+    var w2 = isDone && m.score2 > m.score1;
+    var s1cls = isDone ? (w1 ? 'win' : 'lose') : 'neutral';
+    var s2cls = isDone ? (w2 ? 'win' : 'lose') : 'neutral';
+    var boxCls = isLive ? 'live-box' : isDone ? 'done' : '';
+    var gBadge = m.gender === 'M'
+      ? '<span class="k-badge men">♂ MEN\'S</span>'
+      : '<span class="k-badge women">♀ WOMEN\'S</span>';
+    var statusBadge = isLive
+      ? '<span class="k-badge live-badge"><span class="k-live-dot"></span>LIVE</span>'
+      : '<span class="k-badge done-badge">✓ จบแล้ว</span>';
+    var dateStr = '';
+    if (m.date) {
+      var d = new Date(m.date);
+      var days = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+      var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      dateStr = days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + (m.time ? ' · ' + m.time + ' น.' : '');
+    }
+
+    return '<div class="k-match-card' + (isLive ? ' live' : '') + '">' +
+      '<div class="k-match-info">' +
+        '<div class="k-match-round">' + m.round + '</div>' +
+        gBadge + statusBadge +
+        (dateStr ? '<div class="k-match-date">📅 ' + dateStr + '</div>' : '') +
+      '</div>' +
+      '<div class="k-match-center">' +
+        '<span class="k-player-name left' + (w1 ? ' winner' : w2 ? ' loser' : '') + '">' + (w1 ? '🏆 ' : '') + m.p1 + '</span>' +
+        '<div class="k-score-box ' + boxCls + '">' +
+          '<span class="k-score-num ' + s1cls + '">' + m.score1 + '</span>' +
+          '<span class="k-score-sep">:</span>' +
+          '<span class="k-score-num ' + s2cls + '">' + m.score2 + '</span>' +
+        '</div>' +
+        '<span class="k-player-name right' + (w2 ? ' winner' : w1 ? ' loser' : '') + '">' + m.p2 + (w2 ? ' 🏆' : '') + '</span>' +
+      '</div>' +
+      '<div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderAll() {
+  renderPodium('k-men-podium', 'M');
+  renderPodium('k-women-podium', 'F');
+  renderStats();
+  renderMatches();
+}
+
+// ── Auto-refresh every 30s ─────────────────────────────
+var countdown = 30;
+function tick() {
+  countdown--;
+  var el = document.getElementById('k-refresh-countdown');
+  if (el) el.textContent = 'รีเฟรชใน ' + countdown + ' วินาที';
+  if (countdown <= 0) {
+    countdown = 30;
+    loadData();
+  }
+}
+setInterval(tick, 1000);
+
+// ── Storage sync ───────────────────────────────────────
+window.addEventListener('storage', function(e) {
+  if (e.key === 'com7v3' && e.newValue) {
+    try {
+      var d = JSON.parse(e.newValue);
+      state.players = d.players || [];
+      state.matches = d.matches || [];
+      renderAll();
+    } catch(err) {}
+  }
+});
+
+// ── Init ───────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
