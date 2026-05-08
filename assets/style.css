@@ -285,13 +285,14 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .gender-f{background:rgba(255,100,200,0.15);color:#ff64c8;border:1px solid rgba(255,100,200,0.25);}
 
 @media(max-width:560px){
-  .fix-row{grid-template-columns:64px 1fr auto 1fr 60px;}
+   .fix-row{grid-template-columns:60px 1fr auto 1fr 56px;}
   .fix-player-name{font-size:11px;}
-  .fix-score-num{font-size:14px;padding:0 5px;}
-  .fix-score-box{min-width:50px;height:36px;}
+  .fix-player-a,.fix-player-b{padding:10px 4px;overflow:hidden;}
+  .fix-score-num{font-size:14px;padding:0 4px;}
+  .fix-score-box{min-width:46px;height:36px;}
   .fix-round-name{font-size:10px;}
-  .fix-status{padding:10px 8px;}
-  .fix-date{padding:10px 6px 10px 10px;}
+  .fix-status{padding:10px 6px;}
+  .fix-date{padding:10px 6px 10px 8px;}
   .bfix-row{grid-template-columns:54px 1fr auto 1fr 56px;}
   .bfix-pname{font-size:11px;max-width:80px;}
   .bfix-sn{font-size:15px;width:22px;}
