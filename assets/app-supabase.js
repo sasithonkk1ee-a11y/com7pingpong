@@ -1033,7 +1033,7 @@ var ROUND_ORDER = ['Round of 32','Round of 16','Quarter Final','Semi Final','Fin
 var ROUND_ICONS = {'Round of 32':'🎮','Round of 16':'⚡','Quarter Final':'🔥','Semi Final':'🏅','Final':'🏆'};
 
 function renderAllMatches(){
-  updateMatchBadges();
+ updateMatchBadges();
   var filtered = state.matches.filter(function(m){
     if(curMatchFilter !== 'all' && m.status !== curMatchFilter) return false;
     if(curMatchGender !== 'all' && m.gender !== curMatchGender) return false;
