@@ -939,6 +939,16 @@ function renderRecentMatches(){
     : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
 }
 
+function renderRecentMatches(){
+  // แสดงเฉพาะแมตช์ที่จบแล้วหรือกำลังแข่ง (ไม่แสดง upcoming ที่ยังไม่มีคะแนน)
+  var r = state.matches.filter(function(m){
+    return m.status === 'completed' || m.status === 'live';
+  }).slice().reverse().slice(0,5);
+  document.getElementById('recent-matches-list').innerHTML = r.length
+    ? r.map(matchCard).join('')
+    : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
+}
+
 // ─── FIXTURE ROW ──────────────────────────────────────────────────────────────
 var curMatchFilter = 'all';
 var curMatchGender = 'all';
