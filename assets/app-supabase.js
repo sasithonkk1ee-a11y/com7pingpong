@@ -1793,27 +1793,18 @@ function renderBracketSetup() {
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
   var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : 'Round of 32').trim();
 
-  // Get existing matches for this gender and round
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
-  }).sort(function(a, b) { 
-    return (a.slot || 0) - (b.slot || 0); 
-  });
+  }).sort(function(a, b) { return (a.slot || 0) - (b.slot || 0); });
 
-  // Filter players by gender
-  var players = state.players.filter(function(p) { 
-    return p.gender === gender; 
-  });
-
+  var players = state.players.filter(function(p) { return p.gender === gender; });
   var menCount = state.players.filter(function(p) { return p.gender === 'M'; }).length;
   var womenCount = state.players.filter(function(p) { return p.gender === 'F'; }).length;
 
-  // Create player options dropdown
   var pOpts = '<option value="">— เลือกผู้เล่น —</option>' + players.map(function(p) {
     return '<option value="' + p.name + '">' + p.name + '</option>';
   }).join('');
 
-  // Summary bar
   var readyCount = existing.filter(function(m) { return m.p1 && m.p2; }).length;
   var html = '<div class="bpair-summary">' +
     '<span>คู่ที่จับแล้ว <span class="bpair-summary-num">' + existing.length + ' คู่</span></span>' +
@@ -1821,36 +1812,37 @@ function renderBracketSetup() {
     '<span class="bpair-summary-meta">♂ ' + menCount + ' คน · ♀ ' + womenCount + ' คน</span>' +
   '</div>';
 
-  // Existing pairs as cards
-  if (existing.length) {
-    existing.forEach(function(m, i) {
-      var isReady = m.p1 && m.p2;
-      html += '<div class="bpair-card' + (isReady ? ' ready' : '') + '">' +
-        '<span class="bpair-num">' + (i + 1) + '</span>' +
-        '<select id="bse-p1-' + m.id + '" class="bpair-select">' + pOpts + '</select>' +
-        '<span class="bpair-vs">vs</span>' +
-        '<select id="bse-p2-' + m.id + '" class="bpair-select">' + pOpts + '</select>' +
-        (isReady
-          ? '<span class="bpair-status-ready">✓ พร้อม</span>'
-          : '<span class="bpair-status-pending">⏳ รอ</span>') +
-        '<button onclick="removeBracketPair(\'' + m.id + '\')" class="bpair-del">🗑️</button>' +
-      '</div>';
-    });
-  }
+  // Existing pairs
+  existing.forEach(function(m, i) {
+    var isReady = m.p1 && m.p2;
+    html += '<div class="bpair-card' + (isReady ? ' ready' : '') + '" data-id="' + m.id + '" style="display:grid;grid-template-columns:24px 1fr 28px 1fr 150px 110px 36px;align-items:center;gap:8px;">' +
+      '<span class="bpair-num">' + (i + 1) + '</span>' +
+      '<select id="bse-p1-' + m.id + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
+      '<span class="bpair-vs" style="text-align:center;">vs</span>' +
+      '<select id="bse-p2-' + m.id + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
+      '<input type="date" id="bse-date-' + m.id + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (m.date||'') + '"/>' +
+      '<input type="time" id="bse-time-' + m.id + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (m.time||'') + '"/>' +
+      '<button onclick="removeBracketPair(\'' + m.id + '\')" class="bpair-del">🗑️</button>' +
+    '</div>';
+  });
 
-  // Add new pair row
-  html += '<div class="bpair-card new-row">' +
-    '<span class="bpair-num" style="color:rgba(0,229,255,0.4);">+</span>' +
-    '<select id="bsnew-p1" class="bpair-select">' + pOpts + '</select>' +
-    '<span class="bpair-vs">vs</span>' +
-    '<select id="bsnew-p2" class="bpair-select">' + pOpts + '</select>' +
-    '<span></span>' +
-    '<button onclick="addBracketPair(\'' + gender + '\', \'' + round + '\')" class="bpair-add">+ เพิ่มคู่</button>' +
-  '</div>';
+  // New rows (pending — not yet saved)
+  var pendingRows = window._pendingBracketRows || [];
+  pendingRows.forEach(function(row, i) {
+    html += '<div class="bpair-card new-row" id="bspending-' + i + '" style="display:grid;grid-template-columns:24px 1fr 28px 1fr 150px 110px 36px;align-items:center;gap:8px;">' +
+      '<span class="bpair-num" style="color:rgba(0,229,255,0.4);">' + (existing.length + i + 1) + '</span>' +
+      '<select id="bspending-p1-' + i + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
+      '<span class="bpair-vs" style="text-align:center;">vs</span>' +
+      '<select id="bspending-p2-' + i + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
+      '<input type="date" id="bspending-date-' + i + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (row.date||'') + '"/>' +
+      '<input type="time" id="bspending-time-' + i + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (row.time||'') + '"/>' +
+      '<button onclick="removePendingRow(' + i + ')" class="bpair-del">🗑️</button>' +
+    '</div>';
+  });
 
   el.innerHTML = html;
 
-  // Restore selected values หลัง innerHTML set แล้ว
+  // Restore existing values
   existing.forEach(function(m) {
     var s1 = document.getElementById('bse-p1-' + m.id);
     var s2 = document.getElementById('bse-p2-' + m.id);
@@ -1859,82 +1851,17 @@ function renderBracketSetup() {
   });
 }
 
-async function addBracketPair(gender, round) {
-  round = round.trim();
-  var p1El = document.getElementById('bsnew-p1');
-  var p2El = document.getElementById('bsnew-p2');
-  if (!p1El || !p2El) return;
-  
-  var p1 = p1El.value;
-  var p2 = p2El.value;
-  
-  if (!p1 || !p2) {
-    showToast('กรุณาเลือกผู้เล่นทั้งสองฝั่ง', true);
-    return;
-  }
-  
-  if (p1 === p2) {
-    showToast('ต้องเลือกผู้เล่นคนละคน', true);
-    return;
-  }
-  
-  // Check duplicate
-  var dup = state.matches.find(function(m) {
-    return m.gender === gender && m.round.trim() === round &&
-      ((m.p1 === p1 && m.p2 === p2) || (m.p1 === p2 && m.p2 === p1));
-  });
-  
-  if (dup) {
-    showToast('คู่นี้มีอยู่แล้ว', true);
-    return;
-  }
-  
-  // Check that selected players match the selected gender
-  var player1 = state.players.find(p => p.name === p1);
-  var player2 = state.players.find(p => p.name === p2);
-  
-  if (player1 && player1.gender !== gender) {
-    showToast('ผู้เล่น ' + p1 + ' ไม่ตรงกับประเภทที่เลือก (' + (gender === 'M' ? "Men's" : "Women's") + ')', true);
-    return;
-  }
-  
-  if (player2 && player2.gender !== gender) {
-    showToast('ผู้เล่น ' + p2 + ' ไม่ตรงกับประเภทที่เลือก (' + (gender === 'M' ? "Men's" : "Women's") + ')', true);
-    return;
-  }
-  
-  // Create match data for Supabase
-  var matchData = {
-    p1: p1,
-    p2: p2,
-    score1: 0,
-    score2: 0,
-    round: round,
-    gender: gender,
-    status: 'upcoming',
-    date: '',
-    time: ''
-  };
-  
-  // Add to Supabase
-  if (window.supabaseClient) {
-    const addedMatch = await addMatchToSupabase(matchData);
-    if (addedMatch) {
-      p1El.value = '';
-      p2El.value = '';
-      showToast('✅ เพิ่มคู่ ' + p1 + ' vs ' + p2 + ' แล้ว');
-      return;
-    }
-  }
-
-  // Fallback: บันทึกลง localStorage
-  var newId = Date.now().toString();
-  state.matches.push(Object.assign({}, matchData, { id: newId }));
-  _saveAndBroadcast()
-  p1El.value = '';
-  p2El.value = '';
+// เพิ่มแถวว่างให้กรอก (ไม่ save)
+function addBracketPair(gender, round) {
+  if (!window._pendingBracketRows) window._pendingBracketRows = [];
+  window._pendingBracketRows.push({ p1:'', p2:'', date:'', time:'' });
   renderBracketSetup();
-  showToast('✅ เพิ่มคู่ ' + p1 + ' vs ' + p2 + ' แล้ว');
+}
+
+// ลบแถว pending
+function removePendingRow(idx) {
+  if (window._pendingBracketRows) window._pendingBracketRows.splice(idx, 1);
+  renderBracketSetup();
 }
 
 async function removeBracketPair(id) {
@@ -1970,52 +1897,77 @@ async function saveBracketSetup() {
   
   var saved = 0;
   
-  // Update each match in Supabase
+  // ── Update existing matches ──────────────────────────────
   for (var i = 0; i < existing.length; i++) {
     var m = existing[i];
     var s1 = document.getElementById('bse-p1-' + m.id);
     var s2 = document.getElementById('bse-p2-' + m.id);
-    
+    var dEl = document.getElementById('bse-date-' + m.id);
+    var tEl = document.getElementById('bse-time-' + m.id);
     if (!s1 || !s2) continue;
-    
     var p1 = s1.value;
     var p2 = s2.value;
-    
     if (!p1 || !p2 || p1 === p2) continue;
-    
-    // Update match in Supabase
     var updates = {
-      p1: p1,
-      p2: p2,
-      score1: m.score1,
-      score2: m.score2,
-      round: m.round,
-      gender: m.gender,
-      status: m.status,
-      date: m.date,
-      time: m.time
+      p1: p1, p2: p2,
+      score1: m.score1, score2: m.score2,
+      round: m.round, gender: m.gender, status: m.status,
+      date: dEl ? dEl.value : (m.date||''),
+      time: tEl ? tEl.value : (m.time||'')
     };
-    
     var updated = false;
     if (window.supabaseClient) {
       const success = await updateMatchInSupabase(m.id, updates);
       if (success) updated = true;
     }
     if (!updated) {
-      // Fallback: อัปเดตใน state โดยตรง
       var idx = state.matches.findIndex(function(x) { return x.id === m.id; });
       if (idx >= 0) state.matches[idx] = Object.assign(state.matches[idx], updates);
-      _saveAndBroadcast()
+      _saveAndBroadcast();
       updated = true;
     }
     if (updated) saved++;
   }
-  
+
+  // ── Insert pending rows ──────────────────────────────────
+  var pending = window._pendingBracketRows || [];
+  for (var j = 0; j < pending.length; j++) {
+    var p1El = document.getElementById('bspending-p1-' + j);
+    var p2El = document.getElementById('bspending-p2-' + j);
+    var dEl2 = document.getElementById('bspending-date-' + j);
+    var tEl2 = document.getElementById('bspending-time-' + j);
+    if (!p1El || !p2El) continue;
+    var np1 = p1El.value;
+    var np2 = p2El.value;
+    if (!np1 || !np2 || np1 === np2) continue;
+    var matchData = {
+      p1: np1, p2: np2,
+      score1: 0, score2: 0,
+      round: round, gender: gender, status: 'upcoming',
+      date: dEl2 ? dEl2.value : '',
+      time: tEl2 ? tEl2.value : ''
+    };
+    var inserted = false;
+    if (window.supabaseClient) {
+      const added = await addMatchToSupabase(matchData);
+      if (added) inserted = true;
+    }
+    if (!inserted) {
+      state.matches.push(Object.assign({}, matchData, { id: Date.now().toString() + j }));
+      _saveAndBroadcast();
+      inserted = true;
+    }
+    if (inserted) saved++;
+  }
+
+  // ล้าง pending rows
+  window._pendingBracketRows = [];
+
   if (saved === 0) {
     showToast('⚠️ ยังไม่มีคู่ที่เลือกครบ', true);
     return;
   }
-  
+  renderBracketSetup();
   showToast('✅ บันทึกการจับคู่ ' + saved + ' คู่ สำเร็จ');
 }
 // Update player dropdowns when gender changes
