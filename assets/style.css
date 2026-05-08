@@ -269,7 +269,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .live-badge{display:inline-flex;align-items:center;gap:5px;color:var(--live);font-size:10px;font-weight:700;font-family:'Anuphan',sans-serif;letter-spacing:0.5px;}
 
 /* MATCH CARD */
-.match-card{background:linear-gradient(160deg,rgba(0,35,65,0.92),rgba(0,18,38,0.97));border:1px solid var(--border);border-radius:14px;padding:16px 22px;margin:0 0 10px;display:flex;align-items:center;gap:12px;transition:all 0.2s;backdrop-filter:blur(6px);}
+.match-card{background:linear-gradient(160deg,rgba(0,35,65,0.92),rgba(0,18,38,0.97));border:1px solid var(--border);border-radius:14px;padding:0;margin:0 0 10px;display:grid;grid-template-columns:140px 1fr 140px;align-items:center;transition:all 0.2s;backdrop-filter:blur(6px);}
 .match-card:hover{border-color:rgba(0,229,255,0.45);transform:translateY(-1px);}
 .match-card.live-card{border-color:var(--live);box-shadow:0 0 18px rgba(255,51,85,0.25);}
 .match-vs{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
@@ -1867,3 +1867,4 @@ img { max-width:100%; height:auto; display:block; }
   .fix-player-name{ font-size:14px; }
   .tab{ font-size:15px; }
 }
+
