@@ -50,19 +50,19 @@
     <div class="sec-header-th">ภาพรวมการแข่งขัน</div>
   </div>
   <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);">
-    <div class="stat-card cyan">
+    <div class="stat-card cyan" onclick="showTab('standings',document.querySelector('.tab:nth-child(2)'))" style="cursor:pointer;">
       <div class="stat-num" id="stat-players">0</div>
       <div class="stat-label">ผู้เล่น</div>
     </div>
-    <div class="stat-card gold">
+    <div class="stat-card gold" onclick="showTab('matches',document.querySelector('.tab:nth-child(3)'))" style="cursor:pointer;">
       <div class="stat-num" id="stat-matches">0</div>
       <div class="stat-label">การแข่งขัน</div>
     </div>
-    <div class="stat-card red">
+    <div class="stat-card red" onclick="showTab('matches',document.querySelector('.tab:nth-child(3)'));setTimeout(function(){setMatchFilter('live',document.querySelector('#match-status-filters .filter-btn:nth-child(2)'))},100);" style="cursor:pointer;">
       <div class="stat-num" id="stat-live">0</div>
       <div class="stat-label">LIVE</div>
     </div>
-    <div class="stat-card" style="background:linear-gradient(160deg,rgba(0,30,55,0.9),rgba(0,20,40,0.97));border:1px solid rgba(100,200,255,0.2);">
+    <div class="stat-card" style="background:linear-gradient(160deg,rgba(0,30,55,0.9),rgba(0,20,40,0.97));border:1px solid rgba(100,200,255,0.2);cursor:pointer;" onclick="showTab('matches',document.querySelector('.tab:nth-child(3)'));setTimeout(function(){setMatchFilter('upcoming',document.querySelector('#match-status-filters .filter-btn:nth-child(4)'))},100);">
       <div style="font-size:18px;margin-bottom:4px;">📅</div>
       <div id="stat-next-date" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--cyan);line-height:1.4;">—</div>
       <div class="stat-label">แข่งต่อไป</div>
