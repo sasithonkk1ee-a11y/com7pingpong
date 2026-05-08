@@ -1151,12 +1151,12 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .fix-player-a{
   flex:1;padding:18px 16px;
   display:flex;align-items:center;justify-content:flex-end;
-  min-width:0;
+  min-width:0;overflow:hidden;
 }
 .fix-player-b{
   flex:1;padding:18px 16px;
   display:flex;align-items:center;justify-content:flex-start;
-  min-width:0;
+  min-width:0;overflow:hidden;
 }
 .fix-player-name{
   font-family:'Anuphan',sans-serif;
@@ -1729,7 +1729,7 @@ body{background:var(--bg-base);}
 
   /* ── Fix-row: compact ───────────────────────────────── */
   .fix-date{min-width:60px !important;padding:14px 8px 14px 14px !important;}
-  .fix-player-name{font-size:14px !important;}
+  .fix-player-name{font-size:12px !important;}
   .fix-score-num{font-size:16px !important;padding:0 6px !important;}
   .fix-score-box{min-width:60px !important;height:40px !important;}
   .fix-status{min-width:64px !important;padding:14px 10px !important;}
