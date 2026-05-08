@@ -891,32 +891,30 @@ function matchCard(m){
     dateStr = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()]+(m.time?' · '+m.time+' น.':'');
   }
   return '<div class="match-card'+(isLive?' live-card':'')+'">'+
-    '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:120px;min-width:120px;padding-right:12px;border-right:1px solid var(--border2);flex-shrink:0;">'+
-      (dateStr?'<span style="font-size:9px;color:var(--muted)">📅 '+dateStr+'</span>':'')+
-    '</div>'+
     '<div style="display:flex;align-items:center;justify-content:center;gap:0;flex:1;min-width:0;">'+
-      '<div style="flex:1;text-align:right;padding-right:16px;min-width:0;">'+
-        '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;">'+
+      '<div style="flex:1;text-align:right;padding-right:10px;min-width:0;overflow:hidden;">'+
+        '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;font-family:\'Anuphan\',sans-serif;">'+
           (w1?'🏆 ':'')+m.p1+
         '</div>'+
       '</div>'+
-      '<div class="fix-score-box'+(isLive?' box-live':isDone?' box-done':'')+'" style="min-width:80px;width:80px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+
-        '<span class="fix-score-num'+(isDone?(w1?' s-win':' s-lose'):' s-neutral')+'" style="font-size:22px;padding:0 8px;">'+m.score1+'</span>'+
-        '<span class="fix-score-sep" style="font-size:18px;">:</span>'+
-        '<span class="fix-score-num'+(isDone?(w2?' s-win':' s-lose'):' s-neutral')+'" style="font-size:22px;padding:0 8px;">'+m.score2+'</span>'+
+      '<div class="fix-score-box'+(isLive?' box-live':isDone?' box-done':'')+'" style="min-width:64px;width:64px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+
+        '<span class="fix-score-num'+(isDone?(w1?' s-win':' s-lose'):' s-neutral')+'" style="font-size:18px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score1+'</span>'+
+        '<span class="fix-score-sep" style="font-size:14px;font-family:Arial,sans-serif;">:</span>'+
+        '<span class="fix-score-num'+(isDone?(w2?' s-win':' s-lose'):' s-neutral')+'" style="font-size:18px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score2+'</span>'+
       '</div>'+
-      '<div style="flex:1;text-align:left;padding-left:16px;min-width:0;">'+
-        '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;">'+
+      '<div style="flex:1;text-align:left;padding-left:10px;min-width:0;overflow:hidden;">'+
+        '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;font-family:\'Anuphan\',sans-serif;">'+
           m.p2+(w2?' 🏆':'')+
         '</div>'+
       '</div>'+
     '</div>'+
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;width:120px;min-width:120px;padding-left:12px;border-left:1px solid var(--border2);flex-shrink:0;">'+
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:60px;max-width:90px;padding-left:10px;border-left:1px solid var(--border2);flex-shrink:0;">'+
       (isLive?'<span class="live-badge"><span class="live-dot"></span>LIVE</span>':'')+
-      '<span class="match-round">'+m.round+'</span>'+
-      '<span class="match-gender '+gC+'">'+gL+'</span>'+
-      (isDone?'<span style="font-size:9px;color:var(--win)">✓ จบแล้ว</span>':'')+
-      (m.status==='upcoming'?'<span style="font-size:9px;color:var(--muted)">⏳ รอแข่ง</span>':'')+
+      '<span class="match-round" style="font-size:9px;text-align:right;font-family:\'Anuphan\',sans-serif;">'+m.round+'</span>'+
+      '<span class="match-gender '+gC+'" style="font-size:9px;">'+gL+'</span>'+
+      (isDone?'<span style="font-size:9px;color:var(--win);font-family:\'Anuphan\',sans-serif;">✓ จบแล้ว</span>':'')+
+      (m.status==='upcoming'?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;">⏳ รอแข่ง</span>':'')+
+      (dateStr?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;text-align:right;">📅 '+dateStr+'</span>':'')+
     '</div>'+
   '</div>';
 }
