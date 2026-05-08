@@ -890,44 +890,50 @@ function matchCard(m){
     var monthNames=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     dateStr = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()]+(m.time?' · '+m.time+' น.':'');
   }
-  return '<div class="match-card'+(isLive?' live-card':'')+'">'+
-    '<div style="display:flex;align-items:center;justify-content:center;gap:0;flex:1;min-width:0;">'+
-      '<div style="flex:1;text-align:right;padding-right:10px;min-width:0;overflow:hidden;">'+
-        '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;font-family:\'Anuphan\',sans-serif;">'+
-          (w1?'🏆 ':'')+m.p1+
-        '</div>'+
+
+  var s1cls = isDone ? (w1?'s-win':'s-lose') : 's-neutral';
+  var s2cls = isDone ? (w2?'s-win':'s-lose') : 's-neutral';
+  var boxCls = isLive ? 'box-live' : isDone ? 'box-done' : '';
+
+  return '<div class="match-card'+(isLive?' live-card':'')+'" style="position:relative;padding:14px 16px;min-height:56px;display:flex;align-items:center;">'+
+
+    /* ── match-center: spans full card width, centered ── */
+    '<div style="position:absolute;left:0;right:156px;top:0;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px;">'+
+
+      '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0;">'+
+        (w1?'🏆 ':'')+m.p1+
+      '</span>'+
+
+      '<div class="fix-score-box '+boxCls+'" style="width:60px;min-width:60px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;">'+
+        '<span class="fix-score-num '+s1cls+'" style="font-size:17px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score1+'</span>'+
+        '<span style="font-size:13px;color:rgba(255,255,255,0.3);padding:0 2px;">:</span>'+
+        '<span class="fix-score-num '+s2cls+'" style="font-size:17px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score2+'</span>'+
       '</div>'+
-      '<div class="fix-score-box'+(isLive?' box-live':isDone?' box-done':'')+'" style="min-width:64px;width:64px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+
-        '<span class="fix-score-num'+(isDone?(w1?' s-win':' s-lose'):' s-neutral')+'" style="font-size:18px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score1+'</span>'+
-        '<span class="fix-score-sep" style="font-size:14px;font-family:Arial,sans-serif;">:</span>'+
-        '<span class="fix-score-num'+(isDone?(w2?' s-win':' s-lose'):' s-neutral')+'" style="font-size:18px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score2+'</span>'+
-      '</div>'+
-      '<div style="flex:1;text-align:left;padding-left:10px;min-width:0;overflow:hidden;">'+
-        '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;font-family:\'Anuphan\',sans-serif;">'+
-          m.p2+(w2?' 🏆':'')+
-        '</div>'+
-      '</div>'+
+
+      '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0;">'+
+        m.p2+(w2?' 🏆':'')+
+      '</span>'+
+
     '</div>'+
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:60px;max-width:90px;padding-left:10px;border-left:1px solid var(--border2);flex-shrink:0;">'+
+
+    /* ── match-info: right edge ── */
+    '<div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:140px;max-width:140px;padding-left:12px;border-left:1px solid var(--border2);flex-shrink:0;position:relative;z-index:1;">'+
       (isLive?'<span class="live-badge"><span class="live-dot"></span>LIVE</span>':'')+
-      '<span class="match-round" style="font-size:9px;text-align:right;font-family:\'Anuphan\',sans-serif;">'+m.round+'</span>'+
+      '<span class="match-round" style="font-size:9px;font-family:\'Anuphan\',sans-serif;">'+m.round+'</span>'+
       '<span class="match-gender '+gC+'" style="font-size:9px;">'+gL+'</span>'+
       (isDone?'<span style="font-size:9px;color:var(--win);font-family:\'Anuphan\',sans-serif;">✓ จบแล้ว</span>':'')+
       (m.status==='upcoming'?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;">⏳ รอแข่ง</span>':'')+
-      (dateStr?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;text-align:right;">📅 '+dateStr+'</span>':'')+
+      (dateStr?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;">'+dateStr+'</span>':'')+
     '</div>'+
+
   '</div>';
 }
 
 function renderRecentMatches(){
-  var r = state.matches.slice().reverse().slice(0,5);
-  document.getElementById('recent-matches-list').innerHTML = r.length
-    ? r.map(matchCard).join('')
-    : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
-}
-
-function renderRecentMatches(){
-  var r = state.matches.slice().reverse().slice(0,5);
+  // แสดงเฉพาะแมตช์ที่จบแล้วหรือกำลังแข่ง (ไม่แสดง upcoming ที่ยังไม่มีคะแนน)
+  var r = state.matches.filter(function(m){
+    return m.status === 'completed' || m.status === 'live';
+  }).slice().reverse().slice(0,5);
   document.getElementById('recent-matches-list').innerHTML = r.length
     ? r.map(matchCard).join('')
     : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
@@ -1011,7 +1017,7 @@ function fixtureRow(m, idx){
       gTag+
     '</div>'+
     '<div class="fix-player-a">'+
-      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'">'+
+      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+
         (w1?'🏆 ':'')+m.p1+
       '</div>'+
     '</div>'+
@@ -1021,7 +1027,7 @@ function fixtureRow(m, idx){
       '<span class="fix-score-num '+s2Cls+'">'+m.score2+'</span>'+
     '</div>'+
     '<div class="fix-player-b">'+
-      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'">'+
+      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+
         m.p2+(w2?' 🏆':'')+
       '</div>'+
     '</div>'+
@@ -1033,7 +1039,7 @@ var ROUND_ORDER = ['Round of 32','Round of 16','Quarter Final','Semi Final','Fin
 var ROUND_ICONS = {'Round of 32':'🎮','Round of 16':'⚡','Quarter Final':'🔥','Semi Final':'🏅','Final':'🏆'};
 
 function renderAllMatches(){
- updateMatchBadges();
+  updateMatchBadges();
   var filtered = state.matches.filter(function(m){
     if(curMatchFilter !== 'all' && m.status !== curMatchFilter) return false;
     if(curMatchGender !== 'all' && m.gender !== curMatchGender) return false;
