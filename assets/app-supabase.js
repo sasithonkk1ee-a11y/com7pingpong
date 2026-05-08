@@ -1058,6 +1058,15 @@ function renderAllMatches(){
   var groups = {};
   filtered.forEach(function(m){ if(!groups[m.round]) groups[m.round]=[]; groups[m.round].push(m); });
 
+  // เรียงแมตช์ในแต่ละ round ตามวันที่และเวลา
+  Object.keys(groups).forEach(function(r){
+    groups[r].sort(function(a, b){
+      var aKey = (a.date || '9999-12-31') + 'T' + (a.time || '23:59');
+      var bKey = (b.date || '9999-12-31') + 'T' + (b.time || '23:59');
+      return aKey.localeCompare(bKey);
+    });
+  });
+
   var html = '';
   var rounds = ROUND_ORDER.filter(function(r){ return groups[r]; });
   Object.keys(groups).forEach(function(r){ if(rounds.indexOf(r)===-1) rounds.push(r); });
