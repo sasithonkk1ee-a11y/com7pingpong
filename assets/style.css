@@ -285,7 +285,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .gender-f{background:rgba(255,100,200,0.15);color:#ff64c8;border:1px solid rgba(255,100,200,0.25);}
 
 @media(max-width:560px){
-   .fix-row{grid-template-columns:60px 1fr auto 1fr 56px;}
+  .fix-row{grid-template-columns:60px 1fr auto 1fr 56px;}
   .fix-player-name{font-size:11px;}
   .fix-player-a,.fix-player-b{padding:10px 4px;overflow:hidden;}
   .fix-score-num{font-size:14px;padding:0 4px;}
