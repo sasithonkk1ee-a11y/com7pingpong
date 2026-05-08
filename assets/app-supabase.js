@@ -895,29 +895,32 @@ function matchCard(m){
   var s2cls = isDone ? (w2?'s-win':'s-lose') : 's-neutral';
   var boxCls = isLive ? 'box-live' : isDone ? 'box-done' : '';
 
-  return '<div class="match-card'+(isLive?' live-card':'')+'" style="position:relative;padding:14px 16px;min-height:56px;display:flex;align-items:center;">'+
+  return '<div class="match-card'+(isLive?' live-card':'')+'">'+
 
-    /* ── match-center: spans full card width, centered ── */
-    '<div style="position:absolute;left:0;right:156px;top:0;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px;">'+
+    /* ── left spacer (same width as info panel) ── */
+    '<div></div>'+
 
-      '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0;">'+
+    /* ── match-center: truly centered ── */
+    '<div style="display:flex;justify-content:center;align-items:center;">'+
+
+      '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+
         (w1?'🏆 ':'')+m.p1+
       '</span>'+
 
-      '<div class="fix-score-box '+boxCls+'" style="width:60px;min-width:60px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;">'+
-        '<span class="fix-score-num '+s1cls+'" style="font-size:17px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score1+'</span>'+
-        '<span style="font-size:13px;color:rgba(255,255,255,0.3);padding:0 2px;">:</span>'+
-        '<span class="fix-score-num '+s2cls+'" style="font-size:17px;padding:0 5px;font-family:Arial,sans-serif;font-weight:900;">'+m.score2+'</span>'+
+      '<div class="fix-score-box '+boxCls+'" style="width:70px;min-width:70px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;">'+
+        '<span class="fix-score-num '+s1cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score1+'</span>'+
+        '<span style="font-size:13px;color:rgba(255,255,255,0.3);width:10px;text-align:center;display:inline-block;">:</span>'+
+        '<span class="fix-score-num '+s2cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score2+'</span>'+
       '</div>'+
 
-      '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0;">'+
+      '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+
         m.p2+(w2?' 🏆':'')+
       '</span>'+
 
     '</div>'+
 
-    /* ── match-info: right edge ── */
-    '<div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:140px;max-width:140px;padding-left:12px;border-left:1px solid var(--border2);flex-shrink:0;position:relative;z-index:1;">'+
+    /* ── match-info: right column ── */
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding:0 16px 0 12px;border-left:1px solid var(--border2);">'+
       (isLive?'<span class="live-badge"><span class="live-dot"></span>LIVE</span>':'')+
       '<span class="match-round" style="font-size:9px;font-family:\'Anuphan\',sans-serif;">'+m.round+'</span>'+
       '<span class="match-gender '+gC+'" style="font-size:9px;">'+gL+'</span>'+
@@ -927,16 +930,6 @@ function matchCard(m){
     '</div>'+
 
   '</div>';
-}
-
-function renderRecentMatches(){
-  // แสดงเฉพาะแมตช์ที่จบแล้วหรือกำลังแข่ง (ไม่แสดง upcoming ที่ยังไม่มีคะแนน)
-  var r = state.matches.filter(function(m){
-    return m.status === 'completed' || m.status === 'live';
-  }).slice().reverse().slice(0,5);
-  document.getElementById('recent-matches-list').innerHTML = r.length
-    ? r.map(matchCard).join('')
-    : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
 }
 
 function renderRecentMatches(){
