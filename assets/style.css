@@ -1729,11 +1729,16 @@ body{background:var(--bg-base);}
   .wpct-bar-track{min-width:36px !important;}
 
   /* ── Fix-row: compact ───────────────────────────────── */
-  .fix-date{min-width:60px !important;padding:14px 8px 14px 14px !important;}
-  .fix-player-name{font-size:14px !important;}
-  .fix-score-num{font-size:16px !important;padding:0 6px !important;}
-  .fix-score-box{min-width:60px !important;height:40px !important;}
-  .fix-status{min-width:64px !important;padding:14px 10px !important;}
+  .fix-date{min-width:72px !important;max-width:72px !important;padding:12px 6px 12px 10px !important;}
+  .fix-date-day{font-size:11px !important;}
+  .fix-date-info{font-size:9px !important;}
+  .fix-gender-tag{font-size:8px !important;padding:2px 5px !important;}
+  .fix-player-name{font-size:12px !important;}
+  .fix-player-a,.fix-player-b{padding:12px 6px !important;overflow:hidden !important;}
+  .fix-score-num{font-size:15px !important;padding:0 4px !important;}
+  .fix-score-box{min-width:48px !important;width:48px !important;height:36px !important;}
+  .fix-status{min-width:56px !important;max-width:56px !important;padding:12px 8px !important;}
+  .fix-status-badge{font-size:9px !important;padding:3px 6px !important;}
 
   /* ── Stat grid: 2 cols ──────────────────────────────── */
   .stat-grid{grid-template-columns:repeat(2,1fr) !important;}
