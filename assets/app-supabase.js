@@ -926,6 +926,13 @@ function renderRecentMatches(){
     : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
 }
 
+function renderRecentMatches(){
+  var r = state.matches.slice().reverse().slice(0,5);
+  document.getElementById('recent-matches-list').innerHTML = r.length
+    ? r.map(matchCard).join('')
+    : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
+}
+
 // ─── FIXTURE ROW ──────────────────────────────────────────────────────────────
 var curMatchFilter = 'all';
 var curMatchGender = 'all';
