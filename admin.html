@@ -284,6 +284,7 @@
         <div id="bracket-setup-body" style="margin-top:10px;"></div>
         <div style="margin-top:14px;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
           <div style="font-size:13px;color:var(--muted);flex:1;min-width:180px;">* เลือกผู้เล่นทั้งสองฝั่ง แล้วกดปุ่มบันทึกเพื่อยืนยัน</div>
+          <button type="button" class="btn" onclick="addBracketPair(document.getElementById('bracket-setup-gender').value, document.getElementById('bracket-setup-round').value)" style="background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.3);color:var(--cyan);">+ เพิ่มคู่</button>
           <button type="button" class="btn btn-primary" onclick="saveBracketSetup()" style="background:var(--win);color:#000;box-shadow:0 0 16px rgba(0,229,160,0.3);">💾 บันทึกการจับคู่</button>
         </div>
       </div>
