@@ -1055,39 +1055,14 @@ function renderAllMatches(){
     return;
   }
 
-  var groups = {};
-  filtered.forEach(function(m){ if(!groups[m.round]) groups[m.round]=[]; groups[m.round].push(m); });
-
-  // เรียงแมตช์ในแต่ละ round ตามวันที่และเวลา
-  Object.keys(groups).forEach(function(r){
-    groups[r].sort(function(a, b){
-      var aKey = (a.date || '9999-12-31') + 'T' + (a.time || '23:59');
-      var bKey = (b.date || '9999-12-31') + 'T' + (b.time || '23:59');
-      return aKey.localeCompare(bKey);
-    });
+  // เรียงทุกแมตช์ตามวันที่และเวลา ไม่แบ่ง round
+  filtered.sort(function(a, b){
+    var aKey = (a.date || '9999-12-31') + 'T' + (a.time || '23:59');
+    var bKey = (b.date || '9999-12-31') + 'T' + (b.time || '23:59');
+    return aKey.localeCompare(bKey);
   });
 
-  var html = '';
-  var rounds = ROUND_ORDER.filter(function(r){ return groups[r]; });
-  Object.keys(groups).forEach(function(r){ if(rounds.indexOf(r)===-1) rounds.push(r); });
-
-  rounds.forEach(function(round){
-    var list = groups[round];
-    var icon = ROUND_ICONS[round] || '🏓';
-    var liveInGroup = list.filter(function(m){ return m.status==='live'; }).length;
-
-    html += '<div class="fix-group">'+
-      '<div class="fix-round-header">'+
-        '<div class="fix-round-icon">'+icon+'</div>'+
-        '<div class="fix-round-name">'+round+'</div>'+
-        (liveInGroup ? '<span class="live-badge" style="margin-left:8px"><span class="live-dot"></span>'+liveInGroup+' LIVE</span>' : '')+
-        '<div class="fix-round-count">'+list.length+' แมตช์</div>'+
-      '</div>';
-
-    list.forEach(function(m, i){ html += fixtureRow(m, i); });
-    html += '</div>';
-  });
-
+  var html = filtered.map(function(m, i){ return fixtureRow(m, i); }).join('');
   document.getElementById('all-matches-list').innerHTML = html;
 }
 
