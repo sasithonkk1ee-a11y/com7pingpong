@@ -58,7 +58,7 @@ async function loadDataFromSupabase() {
       p2: m.player2_name || '',
       score1: m.score1 || 0,
       score2: m.score2 || 0,
-      round: m.round || 'Round of 32',
+      round: m.round || '��� A',
       gender: m.gender === 'women' ? 'F' : 'M',
       status: m.status === 'finished' ? 'completed' : m.status === 'live' ? 'live' : 'upcoming',
       date: m.scheduled_at ? m.scheduled_at.split('T')[0] : '',
@@ -117,7 +117,7 @@ function _getDefaultData() {
       {id:8, name:'B. SOOKA',    team:'ทีม/แผนก', gender:'F', played:12, wins:6,  losses:8,  setsFor:20, setsAgainst:11, points:22, pct:84, status:'IN_PLAY',    photo:null},
     ],
     matches:[
-      {id:1, p1:'A. JAYDEN', p2:'B. LIGK',  score1:2, score2:0, round:'Round of 32', gender:'M', status:'completed'},
+      {id:1, p1:'A. JAYDEN', p2:'B. LIGK',  score1:2, score2:0, round:'��� A', gender:'M', status:'completed'},
       {id:2, p1:'A. JAYDEN', p2:'B. LAROY', score1:3, score2:0, round:'Semi Final',  gender:'M', status:'completed'},
     ]
   };
@@ -1038,8 +1038,8 @@ function fixtureRow(m, idx){
   '</div>';
 }
 
-var ROUND_ORDER = ['Round of 32','Round of 16','Quarter Final','Semi Final','Final'];
-var ROUND_ICONS = {'Round of 32':'🎮','Round of 16':'⚡','Quarter Final':'🔥','Semi Final':'🏅','Final':'🏆'};
+var ROUND_ORDER = ['สาย A','สาย B','สาย C','สาย D','Semi Final','Final'];
+var ROUND_ICONS = {'สาย A':'🅰️','สาย B':'🅱️','สาย C':'🇨','สาย D':'🇩','Semi Final':'🏅','Final':'🏆'};
 
 function renderAllMatches(){
   updateMatchBadges();
@@ -1514,7 +1514,7 @@ function renderBracketView(){
 }
 
 function drawBracket(gender, container){
-  var ALL_ROUNDS = ['Round of 32','Round of 16','Quarter Final','Semi Final','Final'];
+  var ALL_ROUNDS = ['สาย A','สาย B','สาย C','สาย D','Semi Final','Final'];
 
   // ── group + dedup + sort ──────────────────────────────────────────────────
   var groups = {};
@@ -1610,7 +1610,7 @@ function drawBracket(gender, container){
 
   // ── render cards ──────────────────────────────────────────────────────────
   var cards='';
-  var icons={'Round of 32':'🎮','Round of 16':'⚡','Quarter Final':'🔥','Semi Final':'🏅','Final':'🏆'};
+  var icons={'สาย A':'🅰️','สาย B':'🅱️','สาย C':'🇨','สาย D':'🇩','Semi Final':'🏅','Final':'🏆'};
 
   for(var ci=0; ci<numCols; ci++){
     var colX    = ci*(CW+HGAP);
@@ -1791,7 +1791,7 @@ function renderBracketSetup() {
   var el = document.getElementById('bracket-setup-body');
   if (!el) return;
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
-  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : 'Round of 32').trim();
+  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '��� A').trim();
 
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
@@ -1889,7 +1889,7 @@ async function removeBracketPair(id) {
 
 async function saveBracketSetup() {
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
-  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : 'Round of 32').trim();
+  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '��� A').trim();
   
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
