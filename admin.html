@@ -402,6 +402,14 @@ window.confirm = function(msg) {
         <option value="completed">จบแล้ว</option><option value="live">LIVE 🔴</option><option value="upcoming">ยังไม่แข่ง</option>
       </select>
     </div>
+
+    <!-- คะแนนแต่ละเซต -->
+    <div style="margin-bottom:18px;">
+      <label class="form-label" style="margin-bottom:10px;display:block;">คะแนนแต่ละเซต (ไม่บังคับ)</label>
+      <div id="set-scores-container" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button type="button" onclick="addSetRow()" class="btn" style="margin-top:8px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);color:var(--cyan);font-size:13px;padding:6px 14px;">+ เพิ่มเซต</button>
+    </div>
+
     <div class="btn-row">
       <button type="button" class="btn btn-primary" onclick="saveEditMatch()">💾 บันทึก</button>
       <button type="button" class="btn" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);" onclick="closeEditMatchModal()">ยกเลิก</button>
