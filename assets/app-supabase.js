@@ -41,7 +41,9 @@ async function loadDataFromSupabase() {
       points: p.points || 0,
       pct: (p.wins || 0) + (p.losses || 0) > 0 ? Math.round((p.wins || 0) / ((p.wins || 0) + (p.losses || 0)) * 100) : 0,
       status: p.status === 'winner' ? 'WINNER' : p.status === 'eliminated' ? 'ELIMINATED' : 'IN_PLAY',
-      photo: p.photo_url
+      photo: p.photo_url,
+      pointsFor: 0,
+      pointsAgainst: 0
     }));
 
     // Load matches
@@ -69,6 +71,8 @@ async function loadDataFromSupabase() {
     // render ทันทีด้วยข้อมูลจาก Supabase
     _supabaseLoadDone = true;
     _supabaseLoading  = false;
+    // คำนวณ pointsFor/pointsAgainst จาก sets ที่โหลดมา
+    recalcStandingsOnly();
     renderAll();
     setupRealtimeSubscriptions();
   } catch (error) {
@@ -309,7 +313,8 @@ async function updateMatchInSupabase(matchId, updates) {
         round: updates.round,
         status: updates.status === 'completed' ? 'finished' : updates.status === 'live' ? 'live' : 'upcoming',
         scheduled_at: updates.date && updates.time ? `${updates.date}T${updates.time}:00` : null,
-        finished_at: updates.status === 'completed' ? new Date().toISOString() : null
+        finished_at: updates.status === 'completed' ? new Date().toISOString() : null,
+        sets: updates.sets || null
       })
       .eq('id', matchId);
 
@@ -321,9 +326,12 @@ async function updateMatchInSupabase(matchId, updates) {
       state.matches[idx] = Object.assign(state.matches[idx], {
         p1: updates.p1, p2: updates.p2,
         score1: updates.score1, score2: updates.score2,
-        gender: updates.gender, round: updates.round, status: updates.status
+        gender: updates.gender, round: updates.round, status: updates.status,
+        date: updates.date || '', time: updates.time || '',
+        sets: updates.sets || []
       });
     }
+    _saveAndBroadcast();
     await recalcAndSyncPlayersToSupabase();
 
     return true;
@@ -638,10 +646,23 @@ async function saveEditMatch() {
     gender: gender,
     status: document.getElementById('edit-match-status').value,
     date: document.getElementById('edit-match-date').value || '',
-    time: document.getElementById('edit-match-time').value || ''
+    time: document.getElementById('edit-match-time').value || '',
+    sets: (function(){
+      // อ่านค่าล่าสุดจาก DOM
+      var container = document.getElementById('set-scores-container');
+      if(container){
+        container.querySelectorAll('.set-row').forEach(function(row, i){
+          var aEl = row.querySelector('.set-a');
+          var bEl = row.querySelector('.set-b');
+          if(!window._editSets) window._editSets = [];
+          if(!window._editSets[i]) window._editSets[i] = {a:0,b:0};
+          if(aEl) window._editSets[i].a = parseInt(aEl.value) || 0;
+          if(bEl) window._editSets[i].b = parseInt(bEl.value) || 0;
+        });
+      }
+      return window._editSets || [];
+    })()
   };
-
-  // ลอง Supabase ก่อน
   if (window.supabaseClient) {
     const success = await updateMatchInSupabase(id, updates);
     if (success) {
@@ -1089,16 +1110,30 @@ function h2hResult(a, b){
   return 0;
 }
 
-// 3-step comparator: points → set diff → H2H
+// Ranking comparator: pointsFor → win% → set diff → point diff → name
 function rankComparator(a, b){
-  // ขั้น 1: แต้มรวม (ชนะ +2, แพ้ +1) — ใครมากกว่าอยู่สูงกว่า
-  if(b.points !== a.points) return b.points - a.points;
-  // ขั้น 2: ผลต่างเซต (เซตได้ - เซตเสีย) — ใครมากกว่าอยู่สูงกว่า
-  var aDiff = a.setsFor - a.setsAgainst;
-  var bDiff = b.setsFor - b.setsAgainst;
-  if(bDiff !== aDiff) return bDiff - aDiff;
-  // ขั้น 3: Head-to-Head — ใครเคยชนะกันโดยตรง
-  return -h2hResult(a, b);
+  // ขั้น 1: แต้มรวม (pointsFor) — มากกว่าอยู่บน
+  var aPts = a.pointsFor || 0;
+  var bPts = b.pointsFor || 0;
+  if(bPts !== aPts) return bPts - aPts;
+
+  // ขั้น 2: % ชนะ (win rate)
+  var aWR = a.played ? (a.wins / a.played) : 0;
+  var bWR = b.played ? (b.wins / b.played) : 0;
+  if(bWR !== aWR) return bWR - aWR;
+
+  // ขั้น 3: ผลต่างเซต (setsFor - setsAgainst)
+  var aSetDiff = (a.setsFor || 0) - (a.setsAgainst || 0);
+  var bSetDiff = (b.setsFor || 0) - (b.setsAgainst || 0);
+  if(bSetDiff !== aSetDiff) return bSetDiff - aSetDiff;
+
+  // ขั้น 4: ผลต่างแต้ม (pointsFor - pointsAgainst)
+  var aPtDiff = (a.pointsFor || 0) - (a.pointsAgainst || 0);
+  var bPtDiff = (b.pointsFor || 0) - (b.pointsAgainst || 0);
+  if(bPtDiff !== aPtDiff) return bPtDiff - aPtDiff;
+
+  // ขั้น 5: เรียงตามชื่อ (tiebreaker)
+  return (a.name || '').localeCompare(b.name || '');
 }
 
 function renderStandings(){
@@ -1130,6 +1165,8 @@ function renderStandings(){
       var setDiff = (p.setsFor - p.setsAgainst);
       var setDiffStr = (setDiff > 0 ? '+' : '') + setDiff;
       var setDiffColor = setDiff > 0 ? 'var(--win)' : setDiff < 0 ? 'var(--lose)' : 'rgba(255,255,255,0.3)';
+      var ptsFor = p.pointsFor || 0;
+      var ptsAgainst = p.pointsAgainst || 0;
       var winPct = p.played ? Math.round((p.wins/p.played)*100) : 0;
       var gPill = p.gender==='M'
         ? '<span class="gender-pill-m">♂ M</span>'
@@ -1149,7 +1186,7 @@ function renderStandings(){
           p.setsFor+'/'+p.setsAgainst+
           ' <span style="color:'+setDiffColor+';font-size:11px;">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-family:\'Orbitron\',monospace;font-size:14px;font-weight:900;color:#d29922;text-align:center;">'+p.points+'</td>'+
+        '<td style="font-family:\'Orbitron\',monospace;font-size:14px;font-weight:900;color:#d29922;text-align:center;">'+ptsFor+'<span style="font-size:10px;color:rgba(255,255,255,0.3);">/'+ptsAgainst+'</span></td>'+
         '<td style="min-width:120px;">'+
           '<div class="wpct-wrap">'+
             '<div class="wpct-bar-track"><div class="wpct-bar-fill" style="width:'+winPct+'%"></div></div>'+
@@ -1178,6 +1215,8 @@ function renderStandings(){
       var setDiff = p.setsFor - p.setsAgainst;
       var setDiffStr = (setDiff > 0 ? '+' : '') + setDiff;
       var setDiffColor = setDiff > 0 ? 'var(--win)' : setDiff < 0 ? 'var(--lose)' : 'var(--muted)';
+      var ptsFor2 = p.pointsFor || 0;
+      var ptsAgainst2 = p.pointsAgainst || 0;
       rows += '<tr class="'+rowCls+'">'+
         '<td><span class="rank-num '+rc+'">'+displayRank+'</span></td>'+
         '<td>'+ava(p,38)+'</td>'+
@@ -1189,7 +1228,7 @@ function renderStandings(){
         '<td style="font-size:10px;white-space:nowrap">'+p.setsFor+'/'+p.setsAgainst+
           '<span style="font-size:9px;color:'+setDiffColor+';margin-left:3px">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-weight:900;color:var(--gold);font-family:\'Orbitron\',monospace;font-size:13px">'+p.points+'</td>'+
+        '<td style="font-weight:900;color:var(--gold);font-family:\'Orbitron\',monospace;font-size:13px">'+ptsFor2+'<span style="font-size:9px;color:rgba(255,255,255,0.3);">/'+ptsAgainst2+'</span></td>'+
         '<td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:'+p.pct+'%"></div></div><span style="font-size:9px;color:var(--muted);min-width:30px">'+p.pct+'%</span></div></td>'+
         '<td><span class="status-badge '+scClass+'">'+p.status+'</span></td>'+
       '</tr>';
@@ -1361,12 +1400,72 @@ function openEditMatch(id){
   document.getElementById('edit-match-status').value = m.status;
   document.getElementById('edit-match-date').value   = m.date || '';
   document.getElementById('edit-match-time').value   = m.time || '';
+  // โหลดคะแนนแต่ละเซต
+  window._editSets = (m.sets && Array.isArray(m.sets)) ? JSON.parse(JSON.stringify(m.sets)) : [];
+  renderSetScores();
   var modal = document.getElementById('edit-match-modal');
   modal.style.display = 'flex';
 }
 
 function closeEditMatchModal(){
   document.getElementById('edit-match-modal').style.display = 'none';
+  window._editSets = [];
+}
+
+// ─── SET SCORE FUNCTIONS ──────────────────────────────────────────────────────
+function renderSetScores(){
+  var container = document.getElementById('set-scores-container');
+  if(!container) return;
+  // อ่านค่าปัจจุบันจาก DOM ก่อน re-render
+  var inputs = container.querySelectorAll('.set-row');
+  inputs.forEach(function(row, i){
+    var aEl = row.querySelector('.set-a');
+    var bEl = row.querySelector('.set-b');
+    if(aEl && window._editSets[i]) window._editSets[i].a = parseInt(aEl.value) || 0;
+    if(bEl && window._editSets[i]) window._editSets[i].b = parseInt(bEl.value) || 0;
+  });
+
+  var sets = window._editSets || [];
+  container.innerHTML = sets.map(function(s, i){
+    return '<div class="set-row" style="display:flex;align-items:center;gap:8px;">' +
+      '<span style="font-size:13px;color:var(--muted);min-width:48px;">เซต '+(i+1)+'</span>' +
+      '<input type="number" min="0" max="30" value="'+(s.a||0)+'" class="form-input set-a" style="width:70px;padding:6px 10px;font-size:14px;text-align:center;"/>'+
+      '<span style="color:var(--muted);">-</span>'+
+      '<input type="number" min="0" max="30" value="'+(s.b||0)+'" class="form-input set-b" style="width:70px;padding:6px 10px;font-size:14px;text-align:center;"/>'+
+      '<button onclick="removeSetRow('+i+')" style="background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.3);color:#f85149;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;">✕</button>'+
+    '</div>';
+  }).join('');
+}
+
+function addSetRow(){
+  if(!window._editSets) window._editSets = [];
+  // อ่านค่าปัจจุบันก่อนเพิ่ม
+  var container = document.getElementById('set-scores-container');
+  if(container){
+    container.querySelectorAll('.set-row').forEach(function(row, i){
+      var aEl = row.querySelector('.set-a');
+      var bEl = row.querySelector('.set-b');
+      if(aEl && window._editSets[i]) window._editSets[i].a = parseInt(aEl.value) || 0;
+      if(bEl && window._editSets[i]) window._editSets[i].b = parseInt(bEl.value) || 0;
+    });
+  }
+  window._editSets.push({a:0, b:0});
+  renderSetScores();
+}
+
+function removeSetRow(idx){
+  // อ่านค่าปัจจุบันก่อนลบ
+  var container = document.getElementById('set-scores-container');
+  if(container){
+    container.querySelectorAll('.set-row').forEach(function(row, i){
+      var aEl = row.querySelector('.set-a');
+      var bEl = row.querySelector('.set-b');
+      if(aEl && window._editSets[i]) window._editSets[i].a = parseInt(aEl.value) || 0;
+      if(bEl && window._editSets[i]) window._editSets[i].b = parseInt(bEl.value) || 0;
+    });
+  }
+  if(window._editSets) window._editSets.splice(idx, 1);
+  renderSetScores();
 }
 
 // ─── MATCH MANAGEMENT ─────────────────────────────────────────────────────────
@@ -1919,10 +2018,10 @@ async function saveBracketSetup() {
       p1: np1, p2: np2,
       score1: 0, score2: 0,
       round: round, gender: gender, status: 'upcoming',
-      date: dEl2 ? dEl2.value : '',
+      date: dEl2 ? dEl2.value : '',  
       time: tEl2 ? tEl2.value : ''
     };
-    var inserted = false;
+    var inserted = false;b  
     if (window.supabaseClient) {
       const added = await addMatchToSupabase(matchData);
       if (added) inserted = true;
@@ -1977,22 +2076,39 @@ function updateEditPlayerDropdownsByGender() {
 }
 
 // ─── STATS RECALC (Local fallback for admin UI) ───────────────────────────────
-function updateStats(p1n, p2n, s1, s2){
+function updateStats(p1n, p2n, s1, s2, sets){
   var p1 = state.players.find(function(p){ return p.name === p1n; });
   var p2 = state.players.find(function(p){ return p.name === p2n; });
   if(!p1 || !p2) return;
   p1.played++; p2.played++;
+
+  // setsFor/setsAgainst = จำนวนเซตที่ชนะ/แพ้ (score1 vs score2)
   p1.setsFor += s1; p1.setsAgainst += s2;
   p2.setsFor += s2; p2.setsAgainst += s1;
-  // กติกา: ชนะ +2 แต้ม, แพ้ +1 แต้ม
+
+  // pointsFor/pointsAgainst = คะแนนรวมจากทุกเซต
+  if(!p1.pointsFor) p1.pointsFor = 0;
+  if(!p1.pointsAgainst) p1.pointsAgainst = 0;
+  if(!p2.pointsFor) p2.pointsFor = 0;
+  if(!p2.pointsAgainst) p2.pointsAgainst = 0;
+
+  if(sets && sets.length > 0){
+    var totalA = 0, totalB = 0;
+    sets.forEach(function(set){
+      totalA += (set.a || 0);
+      totalB += (set.b || 0);
+    });
+    p1.pointsFor += totalA; p1.pointsAgainst += totalB;
+    p2.pointsFor += totalB; p2.pointsAgainst += totalA;
+  }
+
+  // นับชนะ/แพ้
   if(s1 > s2){
-    p1.wins++; p1.points += 2;
-    p2.losses++; p2.points += 1;
+    p1.wins++; p2.losses++;
   } else if(s2 > s1){
-    p2.wins++; p2.points += 2;
-    p1.losses++; p1.points += 1;
+    p2.wins++; p1.losses++;
   } else {
-    p1.wins++; p2.wins++; p1.points++; p2.points++;
+    p1.wins++; p2.wins++;
   }
   p1.pct = p1.played ? Math.round((p1.wins / p1.played) * 100) : 0;
   p2.pct = p2.played ? Math.round((p2.wins / p2.played) * 100) : 0;
@@ -2000,10 +2116,13 @@ function updateStats(p1n, p2n, s1, s2){
 
 function recalcStandingsOnly(){
   state.players.forEach(function(p){
-    p.played=0; p.wins=0; p.losses=0; p.setsFor=0; p.setsAgainst=0; p.points=0; p.pct=0;
+    p.played=0; p.wins=0; p.losses=0;
+    p.setsFor=0; p.setsAgainst=0;
+    p.pointsFor=0; p.pointsAgainst=0;
+    p.points=0; p.pct=0;
   });
   state.matches.filter(function(m){ return m.status==='completed'; }).forEach(function(m){
-    updateStats(m.p1, m.p2, m.score1, m.score2);
+    updateStats(m.p1, m.p2, m.score1, m.score2, m.sets);
   });
 }
 
