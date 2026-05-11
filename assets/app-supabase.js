@@ -905,11 +905,13 @@ function matchCard(m){
   var gC = m.gender === 'M' ? 'gender-m' : 'gender-f';
   var gL = m.gender === 'M' ? "MEN'S" : "WOMEN'S";
   var dateStr = '';
+  var timeStr = '';
   if(m.date){
     var d = new Date(m.date);
     var dayNames=['อา','จ','อ','พ','พฤ','ศ','ส'];
     var monthNames=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    dateStr = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()]+(m.time?' · '+m.time+' น.':'');
+    dateStr = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()];
+    timeStr = m.time ? m.time+' น.' : '';
   }
 
   var s1cls = isDone ? (w1?'s-win':'s-lose') : 's-neutral';
