@@ -1010,52 +1010,67 @@ function fixtureRow(m, idx){
     ? '<span class="fix-gender-tag fix-gender-m">MEN\'S</span>'
     : '<span class="fix-gender-tag fix-gender-f">WOMEN\'S</span>';
 
-  var dateLabel, dateInfo;
+  var dateLabel, dateInfo, timeStr;
   if(m.date){
     var d = new Date(m.date);
     var dayNames = ['อา','จ','อ','พ','พฤ','ศ','ส'];
     var monthNames = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     dateLabel = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()];
-    dateInfo  = m.time ? m.time+' น.' : m.round;
+    timeStr   = m.time ? m.time+' น.' : '';
+    dateInfo  = timeStr || m.round;
   } else {
     dateLabel = 'แมตช์ที่ '+(idx+1);
     dateInfo  = m.round;
+    timeStr   = '';
   }
 
   var boxCls = isDone ? 'box-done' : isLive ? 'box-live' : '';
   var s1Cls  = isDone ? (w1?'s-win':'s-lose') : 's-neutral';
   var s2Cls  = isDone ? (w2?'s-win':'s-lose') : 's-neutral';
+  var genderClass = m.gender === 'F' ? ' fix-women' : '';
 
+  // Status badge — กระชับ ไม่ซ้ำซ้อน
   var statusHtml = isLive
     ? '<span class="fix-status-badge badge-live"><span class="live-dot"></span>LIVE</span>'
     : isDone
       ? '<span class="fix-status-badge badge-done">✓ จบแล้ว</span>'
       : '<span class="fix-status-badge badge-upcoming">⏳ รอแข่ง</span>';
 
-  var genderClass = m.gender === 'F' ? ' fix-women' : '';
+  return '<div class="fix-row'+(isLive?' fix-live':'')+genderClass+'" id="fix-row-'+m.id+'">'+
 
-  return '<div class="fix-row fix-live-check'+(isLive?' fix-live':'')+genderClass+'" id="fix-row-'+m.id+'">'+
+    // ── Date column ──
     '<div class="fix-date">'+
       '<div class="fix-date-day">'+dateLabel+'</div>'+
-      '<div class="fix-date-info">'+dateInfo+'</div>'+
+      (timeStr ? '<div class="fix-date-info">'+timeStr+'</div>' : '<div class="fix-date-info">'+m.round+'</div>')+
       gTag+
     '</div>'+
+
+    // ── Player A ──
     '<div class="fix-player-a">'+
-      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+
+      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" >'+
         (w1?'🏆 ':'')+m.p1+
       '</div>'+
     '</div>'+
+
+    // ── Score ──
     '<div class="fix-score-box '+boxCls+'">'+
       '<span class="fix-score-num '+s1Cls+'">'+m.score1+'</span>'+
       '<span class="fix-score-sep">:</span>'+
       '<span class="fix-score-num '+s2Cls+'">'+m.score2+'</span>'+
     '</div>'+
+
+    // ── Player B ──
     '<div class="fix-player-b">'+
-      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+
+      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'">'+
         m.p2+(w2?' 🏆':'')+
       '</div>'+
     '</div>'+
-    '<div class="fix-status">'+statusHtml+'</div>'+
+
+    // ── Status column — badge เดียว จบ ──
+    '<div class="fix-status">'+
+      statusHtml+
+    '</div>'+
+
   '</div>';
 }
 
