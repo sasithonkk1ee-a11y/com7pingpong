@@ -430,18 +430,25 @@ async function checkAuthStatus() {
 
 // Modified addPlayer function for Supabase
 async function addPlayer() {
-  var name = document.getElementById('new-player-name').value.trim().toUpperCase();
+  var firstname = document.getElementById('new-player-firstname') ? document.getElementById('new-player-firstname').value.trim() : '';
+  var nickname = document.getElementById('new-player-nickname') ? document.getElementById('new-player-nickname').value.trim() : '';
+  var slot = document.getElementById('new-player-slot') ? document.getElementById('new-player-slot').value.trim().toUpperCase() : '';
   var team = document.getElementById('new-player-team').value.trim() || 'ทีม/แผนก';
   var gender = document.getElementById('new-player-gender').value;
   var status = document.getElementById('new-player-status').value;
-  
-  if (!name) {
-    showToast('กรุณากรอกชื่อผู้เล่น', true);
+
+  if (!firstname) {
+    showToast('กรุณากรอกชื่อจริง', true);
     return;
   }
 
+  // รวมชื่อ: "คุณ ชื่อจริง (คุณ ชื่อเล่น) สาย"
+  var namePart = 'คุณ ' + firstname + (nickname ? ' (คุณ ' + nickname + ')' : '');
+  var fullName = slot ? namePart + ' ' + slot : namePart;
+  var name = fullName; // compat
+
   // Check if player already exists
-  if (state.players.some(p => p.name === name)) {
+  if (state.players.some(p => p.name === fullName)) {
     showToast('ชื่อนี้มีอยู่แล้ว', true);
     return;
   }
@@ -458,7 +465,7 @@ async function addPlayer() {
   }
 
   const newPlayer = {
-    name: name,
+    name: fullName,
     team: team,
     gender: gender,
     status: status,
@@ -472,7 +479,8 @@ async function addPlayer() {
       resetPhotoUI();
       document.getElementById('new-player-name').value = '';
       document.getElementById('new-player-team').value = '';
-      showToast('✅ เพิ่ม ' + name + ' สำเร็จ');
+      if(document.getElementById('new-player-slot')) document.getElementById('new-player-slot').value = '';
+      showToast('✅ เพิ่ม ' + fullName + ' สำเร็จ');
       return;
     }
   }
@@ -544,14 +552,18 @@ async function saveEditPlayer() {
   
   if (!p) return;
   
-  var newName = document.getElementById('edit-player-name').value.trim().toUpperCase();
+  var newName = document.getElementById('edit-player-name').value.trim();
+  var newNick = document.getElementById('edit-player-nickname') ? document.getElementById('edit-player-nickname').value.trim() : '';
+  var newSlot = document.getElementById('edit-player-slot') ? document.getElementById('edit-player-slot').value.trim().toUpperCase() : '';
+  var namePart = 'คุณ ' + newName + (newNick ? ' (คุณ ' + newNick + ')' : '');
+  var fullName = newSlot ? namePart + ' ' + newSlot : namePart;
   if (!newName) {
     showToast('กรุณากรอกชื่อ', true);
     return;
   }
 
   var updates = {
-    name: newName,
+    name: fullName,
     team: document.getElementById('edit-player-team').value.trim() || p.team,
     gender: document.getElementById('edit-player-gender').value,
     status: document.getElementById('edit-player-status').value,
@@ -561,6 +573,18 @@ async function saveEditPlayer() {
     setsFor: p.setsFor,
     setsAgainst: p.setsAgainst
   };
+
+  // อัปโหลดรูปใหม่ถ้ามี
+  if (window._editPendingPhoto) {
+    if (window.supabaseClient) {
+      var blob = dataURLtoBlob(window._editPendingPhoto);
+      var newPhotoUrl = await uploadImageToSupabase(blob, 'player-' + fullName + '.jpg');
+      if (newPhotoUrl) updates.photo = newPhotoUrl;
+    } else {
+      updates.photo = window._editPendingPhoto;
+    }
+    window._editPendingPhoto = null;
+  }
 
   var oldName = p.name;
 
@@ -572,15 +596,16 @@ async function saveEditPlayer() {
       p.team = updates.team;
       p.gender = updates.gender;
       p.status = updates.status;
-      if (oldName !== newName) {
+      if(updates.photo) p.photo = updates.photo;
+      if (oldName !== fullName) {
         state.matches.forEach(function(m) {
-          if (m.p1 === oldName) m.p1 = newName;
-          if (m.p2 === oldName) m.p2 = newName;
+          if (m.p1 === oldName) m.p1 = fullName;
+          if (m.p2 === oldName) m.p2 = fullName;
         });
       }
       closeEditModal();
       renderAll();
-      showToast('✅ แก้ไข ' + newName + ' สำเร็จ');
+      showToast('✅ แก้ไข ' + fullName + ' สำเร็จ');
       return;
     }
   }
@@ -1193,9 +1218,10 @@ function renderStandings(){
         '<td>'+ava(p,36)+'</td>'+
         '<td>'+
           '<div class="player-name-cell">'+p.name+'</div>'+
+          '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
           '<div style="margin-top:3px;">'+gPill+'</div>'+
         '</td>'+
-        '<td style="font-size:12px;color:rgba(255,255,255,0.4)">'+p.team+'</td>'+
+        '<td style="text-align:center;font-size:13px;font-weight:700;color:var(--cyan);font-family:\'Orbitron\',monospace;">'+(function(name){ var m=name.match(/([A-D])\d+\s*$/); return m?'สาย '+m[1]:'-'; })(p.name)+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;">'+p.played+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:var(--win);font-weight:700;">'+p.wins+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:rgba(248,81,73,0.8);">'+p.losses+'</td>'+
@@ -1203,7 +1229,7 @@ function renderStandings(){
           p.setsFor+'/'+p.setsAgainst+
           ' <span style="color:'+setDiffColor+';font-size:11px;">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-family:\'Orbitron\',monospace;font-size:14px;font-weight:900;color:#d29922;text-align:center;">'+ptsFor+'<span style="font-size:10px;color:rgba(255,255,255,0.3);">/'+ptsAgainst+'</span></td>'+
+        '<td style="font-family:\'Orbitron\',monospace;font-size:14px;font-weight:900;color:#d29922;text-align:center;">'+ptsFor+'</td>'+
         '<td style="min-width:120px;">'+
           '<div class="wpct-wrap">'+
             '<div class="wpct-bar-track"><div class="wpct-bar-fill" style="width:'+winPct+'%"></div></div>'+
@@ -1237,15 +1263,17 @@ function renderStandings(){
       rows += '<tr class="'+rowCls+'">'+
         '<td><span class="rank-num '+rc+'">'+displayRank+'</span></td>'+
         '<td>'+ava(p,38)+'</td>'+
-        '<td><div class="player-name-cell">'+p.name+'</div></td>'+
-        '<td style="font-size:11px;color:var(--muted)">'+p.team+'</td>'+
+        '<td colspan="2">'+
+          '<div class="player-name-cell">'+p.name+'</div>'+
+          '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
+        '</td>'+
         '<td>'+p.played+'</td>'+
         '<td class="stat-win">'+p.wins+'</td>'+
         '<td class="stat-lose">'+p.losses+'</td>'+
         '<td style="font-size:10px;white-space:nowrap">'+p.setsFor+'/'+p.setsAgainst+
           '<span style="font-size:9px;color:'+setDiffColor+';margin-left:3px">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-weight:900;color:var(--gold);font-family:\'Orbitron\',monospace;font-size:13px">'+ptsFor2+'<span style="font-size:9px;color:rgba(255,255,255,0.3);">/'+ptsAgainst2+'</span></td>'+
+        '<td style="font-weight:900;color:var(--gold);font-family:\'Orbitron\',monospace;font-size:13px">'+ptsFor2+'</td>'+
         '<td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:'+p.pct+'%"></div></div><span style="font-size:9px;color:var(--muted);min-width:30px">'+p.pct+'%</span></div></td>'+
         '<td><span class="status-badge '+scClass+'">'+p.status+'</span></td>'+
       '</tr>';
@@ -1284,6 +1312,12 @@ function filterByGender(g, btn){
 
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
 function el(id){ return document.getElementById(id); }
+
+// Helper: เพิ่ม "คุณ" นำหน้าชื่อถ้ายังไม่มี
+function displayPlayerName(name){
+  if(!name) return name;
+  return /^คุณ\s/i.test(name) ? name : 'คุณ ' + name;
+}
 function renderAll(){
   if(el('men-podium'))          renderTopPlayers();
   if(el('stat-players'))        renderOverviewStats();
@@ -1344,12 +1378,12 @@ function renderPlayerMgmt(){
 
   // ยังไม่ได้เลือกประเภท — แสดง placeholder
   if(_playerMgmtGender === null){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px;font-family:\'Anuphan\',sans-serif;font-size:15px;">กรุณาเลือกประเภทเพื่อดูรายชื่อผู้แข่งขัน</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;font-family:\'Anuphan\',sans-serif;font-size:15px;">กรุณาเลือกประเภทเพื่อดูรายชื่อผู้แข่งขัน</td></tr>';
     return;
   }
 
   if(!state.players.length){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px">ยังไม่มีผู้เล่น</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:16px">ยังไม่มีผู้เล่น</td></tr>';
     return;
   }
   var allMen   = state.players.filter(function(p){ return p.gender==='M'; }).sort(rankComparator);
@@ -1359,18 +1393,27 @@ function renderPlayerMgmt(){
 
   function buildRows(list, gLabel, gColor){
     if(!list.length) return '';
-    var html = '<tr><td colspan="7" style="padding:10px 18px 4px;background:rgba(0,0,0,0.2);">'+
+    var html = '<tr><td colspan="9" style="padding:10px 18px 4px;background:rgba(0,0,0,0.2);">'+
       '<span style="font-family:\'Anuphan\',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:'+gColor+'">'+gLabel+'</span>'+
     '</td></tr>';
     list.forEach(function(p, i){
       var scClass = p.status==='WINNER'?'status-winner': p.status==='IN_PLAY'?'status-inplay':'status-eliminated';
       var genderLabel = p.gender==='M' ? '<span style="color:#00e5ff;font-size:10px">♂ MEN</span>' : '<span style="color:#ff80ab;font-size:10px">♀ WOMEN</span>';
+      var slotMatch = p.name.match(/\s([A-D]\d+)\s*$/i);
+      var slot = slotMatch ? slotMatch[1].toUpperCase() : '-';
+      var nameNoSlot = slotMatch ? p.name.replace(/\s([A-D]\d+)\s*$/i, '').trim() : p.name;
+      var nameNoPre = nameNoSlot.replace(/^คุณ\s+/i, '').trim();
+      var nickMatch = nameNoPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
+      var firstName = 'คุณ ' + (nickMatch ? nickMatch[1].trim() : nameNoPre);
+      var nickName = nickMatch ? nickMatch[2].trim() : '-';
       html += '<tr>'+
         '<td style="color:var(--muted)">'+(i+1)+'</td>'+
-        '<td style="font-weight:700">'+p.name+'</td>'+
+        '<td style="font-weight:700">'+firstName+'</td>'+
+        '<td style="color:var(--muted);font-size:13px;">'+(nickName!=='-'?'('+nickName+')':'-')+'</td>'+
         '<td style="color:var(--muted);font-size:11px">'+p.team+'</td>'+
+        '<td style="font-family:Orbitron,monospace;font-size:12px;color:var(--cyan);font-weight:700;">'+slot+'</td>'+
         '<td>'+genderLabel+'</td>'+
-        '<td style="font-family:Orbitron,monospace;color:var(--gold);font-weight:900">'+p.points+'</td>'+
+        '<td style="font-family:Orbitron,monospace;color:var(--gold);font-weight:900">'+(p.pointsFor||0)+'</td>'+
         '<td><span class="status-badge '+scClass+'">'+p.status+'</span></td>'+
         '<td style="white-space:nowrap">'+
           '<button class="btn-edit" onclick="openEditModal(\''+p.id+'\')">✏️ แก้ไข</button>'+
@@ -1387,8 +1430,38 @@ function renderPlayerMgmt(){
 function openEditModal(id){
   var p = state.players.find(x => x.id === id);
   if(!p) return;
+
+  // โหลดรูปภาพปัจจุบัน
+  var photoImg = document.getElementById('edit-photo-img');
+  var photoPh = document.getElementById('edit-photo-ph');
+  window._editPendingPhoto = null;
+  if(p.photo && photoImg){
+    photoImg.src = p.photo;
+    photoImg.style.display = 'block';
+    if(photoPh) photoPh.style.display = 'none';
+  } else {
+    if(photoImg){ photoImg.src=''; photoImg.style.display='none'; }
+    if(photoPh) photoPh.style.display = '';
+  }
+  var editPhotoInp = document.getElementById('edit-photo-inp');
+  if(editPhotoInp) editPhotoInp.value = '';
+  // แยกสายออกจากชื่อ เช่น "คุณ ภูเบธ (โตส) A2" → firstname="ภูเบธ", nickname="โตส", slot="A2"
+  var slotMatch = p.name.match(/\s([A-D]\d+)\s*$/i);
+  var nameNoSlot = slotMatch ? p.name.replace(/\s([A-D]\d+)\s*$/i, '').trim() : p.name;
+  var slot = slotMatch ? slotMatch[1].toUpperCase() : '';
+  // ลบ "คุณ " นำหน้า
+  var nameNoPre = nameNoSlot.replace(/^คุณ\s+/i, '').trim();
+  // แยกชื่อเล่นในวงเล็บ
+  var nickMatch = nameNoPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
+  var baseName = nickMatch ? nickMatch[1].trim() : nameNoPre;
+  var nickname = nickMatch ? nickMatch[2].trim() : '';
+
   document.getElementById('edit-player-id').value      = p.id;
-  document.getElementById('edit-player-name').value    = p.name;
+  document.getElementById('edit-player-name').value    = baseName;
+  var nickEl = document.getElementById('edit-player-nickname');
+  if(nickEl) nickEl.value = nickname;
+  var slotEl = document.getElementById('edit-player-slot');
+  if(slotEl) slotEl.value = slot;
   document.getElementById('edit-player-team').value    = p.team;
   document.getElementById('edit-player-gender').value  = p.gender;
   document.getElementById('edit-player-status').value  = p.status;
@@ -1553,7 +1626,7 @@ function renderMatchMgmt(){
     html += '<div class="mmgmt-card'+(isLive?' mmgmt-card-live':isDone?' mmgmt-card-done':'')+'">'+
       '<div class="mmgmt-card-main">'+
         '<div class="mmgmt-player mmgmt-player-a'+(w1?' mmgmt-winner':w2?' mmgmt-loser':'')+'">'+
-          (w1?'<span class="mmgmt-trophy">🏆</span> ':'')+m.p1+
+          (w1?'<span class="mmgmt-trophy">🏆</span> ':'')+(/^คุณ\s/i.test(m.p1)?m.p1:'คุณ '+m.p1)+
         '</div>'+
         '<div class="mmgmt-score-wrap">'+
           (isDone||isLive
@@ -1564,7 +1637,7 @@ function renderMatchMgmt(){
           )+
         '</div>'+
         '<div class="mmgmt-player mmgmt-player-b'+(w2?' mmgmt-winner':w1?' mmgmt-loser':'')+'">'+
-          m.p2+(w2?' <span class="mmgmt-trophy">🏆</span>':'')+
+          (/^คุณ\s/i.test(m.p2)?m.p2:'คุณ '+m.p2)+(w2?' <span class="mmgmt-trophy">🏆</span>':'')+
         '</div>'+
       '</div>'+
       '<div class="mmgmt-card-footer">'+
@@ -1856,8 +1929,7 @@ async function _doResetData(){
 // ─── PHOTO HANDLER ─────────────────────────────────────────────────────────────
 function handlePhoto(e){
   var f = e.target.files[0];
-  if(!f) return;
-  var r = new FileReader();
+  if(!f) return;  var r = new FileReader();
   r.onload = function(ev){
     state.pendingPhoto = ev.target.result;
     var img = document.getElementById('photo-img');
@@ -1871,6 +1943,21 @@ function handlePhoto(e){
 function resetPhotoUI(){
   state.pendingPhoto = null;
   var img = document.getElementById('photo-img');
+
+// ─── EDIT PHOTO HANDLER ────────────────────────────────────────────────────────
+function handleEditPhoto(e){
+  var f = e.target.files[0];
+  if(!f) return;
+  var r = new FileReader();
+  r.onload = function(ev){
+    window._editPendingPhoto = ev.target.result;
+    var img = document.getElementById('edit-photo-img');
+    var ph = document.getElementById('edit-photo-ph');
+    if(img){ img.src = ev.target.result; img.style.display = 'block'; }
+    if(ph) ph.style.display = 'none';
+  };
+  r.readAsDataURL(f);
+}
   img.src = '';
   img.style.display = 'none';
   document.getElementById('photo-ph').style.display = '';
