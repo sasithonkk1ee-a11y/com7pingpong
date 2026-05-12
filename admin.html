@@ -201,7 +201,7 @@
         <div style="overflow-x:auto;border-radius:10px;border:1px solid rgba(0,229,255,0.15);">
           <table class="player-mgmt-table">
             <thead><tr>
-              <th>#</th><th>ชื่อ</th><th>ทีม</th><th>ประเภท</th><th>แต้ม</th><th>สถานะ</th><th>จัดการ</th>
+              <th>#</th><th>ชื่อจริง</th><th>ชื่อเล่น</th><th>ทีม</th><th>สาย</th><th>ประเภท</th><th>แต้ม</th><th>สถานะ</th><th>จัดการ</th>
             </tr></thead>
             <tbody id="player-mgmt-body"></tbody>
           </table>
@@ -220,7 +220,11 @@
           <input type="file" id="photo-inp" accept="image/*" style="display:none;" onchange="handlePhoto(event)">
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">ชื่อผู้เล่น</label><input class="form-input" id="new-player-name" placeholder="A. JAYDEN"/></div>
+          <div class="form-group"><label class="form-label">ชื่อจริง</label><input class="form-input" id="new-player-firstname" placeholder="ศิวพล"/></div>
+          <div class="form-group"><label class="form-label">ชื่อเล่น</label><input class="form-input" id="new-player-nickname" placeholder="สิบ"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">สาย (เช่น A1, B2)</label><input class="form-input" id="new-player-slot" placeholder="A1" style="text-transform:uppercase;"/></div>
           <div class="form-group"><label class="form-label">ทีม / แผนก</label><input class="form-input" id="new-player-team" placeholder="ทีม/แผนก"/></div>
         </div>
         <div class="form-row">
@@ -423,8 +427,21 @@ window.confirm = function(msg) {
   <div class="edit-modal-card">
     <div class="edit-modal-title">✏️ แก้ไขข้อมูลผู้เล่น</div>
     <input type="hidden" id="edit-player-id"/>
+    <!-- รูปภาพ -->
+    <div style="text-align:center;margin-bottom:18px;">
+      <div id="edit-photo-prev" onclick="document.getElementById('edit-photo-inp').click()" style="width:80px;height:80px;border-radius:50%;margin:0 auto;cursor:pointer;overflow:hidden;background:rgba(0,229,255,0.1);border:2px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:32px;">
+        <img id="edit-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;"/>
+        <span id="edit-photo-ph">📷</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">กดเพื่อเปลี่ยนรูป</div>
+      <input type="file" id="edit-photo-inp" accept="image/*" style="display:none;" onchange="handleEditPhoto(event)">
+    </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">ชื่อผู้เล่น</label><input class="form-input" id="edit-player-name"/></div>
+      <div class="form-group"><label class="form-label">ชื่อจริง</label><input class="form-input" id="edit-player-name" placeholder="ศิวพล"/></div>
+      <div class="form-group"><label class="form-label">ชื่อเล่น</label><input class="form-input" id="edit-player-nickname" placeholder="สิบ"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">สาย (เช่น A1, B2)</label><input class="form-input" id="edit-player-slot" placeholder="A1" style="text-transform:uppercase;"/></div>
       <div class="form-group"><label class="form-label">ทีม / แผนก</label><input class="form-input" id="edit-player-team"/></div>
     </div>
     <div class="form-row">
