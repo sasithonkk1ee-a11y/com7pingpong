@@ -865,7 +865,7 @@ function renderTopPlayers(){
 
   function card(p, rank){
     if(!p) return '<div class="podium-card" style="opacity:0.25;flex:1;max-width:110px"><div style="padding:20px;font-size:28px;text-align:center">?</div></div>';
-    return '<div class="podium-card rank-'+rank+'"><div class="rank-badge">'+rank+'</div>'+podiumAva(p)+'<div class="podium-name">'+p.name+'</div><div class="podium-pts">'+((p.pointsFor||0))+' pts</div></div>';
+    return '<div class="podium-card rank-'+rank+'"><div class="rank-badge">'+rank+'</div>'+podiumAva(p)+'<div class="podium-name">'+p.name+'</div><div class="podium-pts">'+((p.played||0))+' Match</div></div>';
   }
 
   var mOrder = [men[1], men[0], men[2]];
