@@ -189,7 +189,8 @@ async function updatePlayerInSupabase(playerId, updates) {
         wins: updates.wins,
         losses: updates.losses,
         sets_won: updates.setsFor,
-        sets_lost: updates.setsAgainst
+        sets_lost: updates.setsAgainst,
+        ...(updates.photo ? { photo_url: updates.photo } : {})
       })
       .eq('id', playerId);
 
@@ -615,10 +616,11 @@ async function saveEditPlayer() {
   p.team = updates.team;
   p.gender = updates.gender;
   p.status = updates.status;
-  if (oldName !== newName) {
+  if(updates.photo) p.photo = updates.photo;
+  if (oldName !== fullName) {
     state.matches.forEach(function(m) {
-      if (m.p1 === oldName) m.p1 = newName;
-      if (m.p2 === oldName) m.p2 = newName;
+      if (m.p1 === oldName) m.p1 = fullName;
+      if (m.p2 === oldName) m.p2 = fullName;
     });
   }
   _saveAndBroadcast()
@@ -1216,10 +1218,17 @@ function renderStandings(){
       html += '<tr class="'+rowCls+'">'+
         '<td style="text-align:center;width:44px;"><div class="rank-cell">'+rankIcon+'</div></td>'+
         '<td>'+ava(p,36)+'</td>'+
-        '<td>'+
-          '<div class="player-name-cell">'+p.name+'</div>'+
-          '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
-          '<div style="margin-top:3px;">'+gPill+'</div>'+
+        '<td>'+(function(name){
+          var slotM = name.match(/\s([A-D]\d+)\s*$/i);
+          var noSlot = slotM ? name.replace(/\s([A-D]\d+)\s*$/i,'').trim() : name;
+          var noPre = noSlot.replace(/^คุณ\s+/i,'').trim();
+          var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
+          var fn = 'คุณ '+(nickM?nickM[1].trim():noPre);
+          var nn = nickM?'<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+nickM[2].trim()+')</span>':'';
+          return '<div class="player-name-cell">'+fn+nn+'</div>'+
+            '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
+            '<div style="margin-top:3px;">'+gPill+'</div>';
+        })(p.name)+
         '</td>'+
         '<td style="text-align:center;font-size:13px;font-weight:700;color:var(--cyan);font-family:\'Orbitron\',monospace;">'+(function(name){ var m=name.match(/([A-D])\d+\s*$/); return m?'สาย '+m[1]:'-'; })(p.name)+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;">'+p.played+'</td>'+
@@ -1264,7 +1273,7 @@ function renderStandings(){
         '<td><span class="rank-num '+rc+'">'+displayRank+'</span></td>'+
         '<td>'+ava(p,38)+'</td>'+
         '<td colspan="2">'+
-          '<div class="player-name-cell">'+p.name+'</div>'+
+          '<div class="player-name-cell">'+displayPlayerName(p.name)+'</div>'+
           '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
         '</td>'+
         '<td>'+p.played+'</td>'+
@@ -1454,7 +1463,8 @@ function openEditModal(id){
   // แยกชื่อเล่นในวงเล็บ
   var nickMatch = nameNoPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
   var baseName = nickMatch ? nickMatch[1].trim() : nameNoPre;
-  var nickname = nickMatch ? nickMatch[2].trim() : '';
+  // ลบ "คุณ " นำหน้าชื่อเล่นด้วย
+  var nickname = nickMatch ? nickMatch[2].trim().replace(/^คุณ\s+/i, '') : '';
 
   document.getElementById('edit-player-id').value      = p.id;
   document.getElementById('edit-player-name').value    = baseName;
@@ -1943,6 +1953,11 @@ function handlePhoto(e){
 function resetPhotoUI(){
   state.pendingPhoto = null;
   var img = document.getElementById('photo-img');
+  img.src = '';
+  img.style.display = 'none';
+  document.getElementById('photo-ph').style.display = '';
+  document.getElementById('photo-inp').value = '';
+}
 
 // ─── EDIT PHOTO HANDLER ────────────────────────────────────────────────────────
 function handleEditPhoto(e){
@@ -1957,11 +1972,6 @@ function handleEditPhoto(e){
     if(ph) ph.style.display = 'none';
   };
   r.readAsDataURL(f);
-}
-  img.src = '';
-  img.style.display = 'none';
-  document.getElementById('photo-ph').style.display = '';
-  document.getElementById('photo-inp').value = '';
 }
 // ─── BRACKET SETUP FUNCTIONS ─────────────────────────────────────────────────
 
