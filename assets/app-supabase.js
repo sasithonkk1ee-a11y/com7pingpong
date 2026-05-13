@@ -1047,15 +1047,13 @@ function fixtureRow(m, idx){
     var fn = p.firstName || ('คุณ ' + name);
     var nn = p.nickName ? '<span class="frow-nick">('+p.nickName+')</span>' : '';
     var slotPill = p.slot ? '<span class="frow-slot">'+p.slot+'</span>' : '';
-    var trophy = isWinner ? '<span class="frow-trophy">🏆</span>' : '<span class="frow-trophy-ph"></span>';
     var dept = (team && team !== 'ทีม/แผนก') ? team : '';
     var nameCls = 'frow-name'+(isWinner?' frow-winner':'');
 
     if(alignRight){
-      // Grid 2 cols: [name+dept] [slot+trophy]
-      // dept จะอยู่ใต้ชื่อพอดี ขอบขวาตรงกับ ) เสมอ
+      // ซ้าย: [name+dept col] [slot]
       var rightCol = '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;align-self:flex-start;">'
-        +slotPill+trophy
+        +slotPill
       +'</div>';
       var leftCol = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
         +'<span class="'+nameCls+'">'+fn+nn+'</span>'
@@ -1065,11 +1063,9 @@ function fixtureRow(m, idx){
         +leftCol+rightCol
       +'</div>';
     } else {
-      // ขวา: mirror ฝั่งซ้าย
-      // row (flex-row): [trophy+slot] [name+dept col]
-      // dept ขอบซ้ายตรง "ค" ของชื่อ
+      // ขวา: [slot] [name+dept col]
       var leftCol2 = '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;align-self:flex-start;">'
-        +trophy+slotPill
+        +slotPill
       +'</div>';
       var rightCol2 = '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">'
         +'<span class="'+nameCls+'">'+fn+nn+'</span>'
