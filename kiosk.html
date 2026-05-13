@@ -352,6 +352,29 @@ body::after{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script>
+// ── Name Parser ────────────────────────────────────────
+function parseName(name){
+  if(!name) return { firstName:'', nickName:'', slot:'' };
+  var slotM = name.match(/\s([A-D]\d+)\s*$/i);
+  var slot = slotM ? slotM[1].toUpperCase() : '';
+  var noSlot = slotM ? name.replace(/\s([A-D]\d+)\s*$/i,'').trim() : name;
+  var noPre = noSlot.replace(/^คุณ\s+/i,'').trim();
+  var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
+  var rawFirst = nickM ? nickM[1].trim() : noPre;
+  var rawNick  = nickM ? nickM[2].trim() : '';
+  var firstName = rawFirst ? 'คุณ ' + rawFirst.replace(/^คุณ\s+/i,'') : '';
+  var nickName  = rawNick  ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
+  return { firstName: firstName, nickName: nickName, slot: slot };
+}
+function fmtNameInline(name){
+  if(!name) return '';
+  var p = parseName(name);
+  var out = p.firstName || ('คุณ ' + name);
+  if(p.nickName) out += ' (' + p.nickName + ')';
+  if(p.slot)     out += ' ' + p.slot;
+  return out;
+}
+
 // ── State ──────────────────────────────────────────────
 var state = { players: [], matches: [] };
 
@@ -411,7 +434,13 @@ function renderPodium(containerId, gender) {
     return '<div class="k-podium-card rank-' + ranks[i] + '">' +
       '<div class="k-rank-badge">' + ranks[i] + '</div>' +
       ava +
-      '<div class="k-podium-name">' + p.name + '</div>' +
+      '<div class="k-podium-name">' + (function(n){
+        var p = parseName(n);
+        var out = p.firstName || ('คุณ ' + n);
+        if(p.nickName) out += '<br><span style="font-size:12px;opacity:0.7;">('+p.nickName+')</span>';
+        if(p.slot)     out += '<br><span style="font-family:\'Orbitron\',monospace;font-size:11px;color:#00e5ff;">'+p.slot+'</span>';
+        return out;
+      })(p.name) + '</div>' +
       '<div class="k-podium-pts">' + p.points + ' pts</div>' +
     '</div>';
   }).join('');
@@ -477,13 +506,13 @@ function renderMatches() {
         (dateStr ? '<div class="k-match-date">📅 ' + dateStr + '</div>' : '') +
       '</div>' +
       '<div class="k-match-center">' +
-        '<span class="k-player-name left' + (w1 ? ' winner' : w2 ? ' loser' : '') + '">' + (w1 ? '🏆 ' : '') + m.p1 + '</span>' +
+        '<span class="k-player-name left' + (w1 ? ' winner' : w2 ? ' loser' : '') + '">' + (w1 ? '🏆 ' : '') + fmtNameInline(m.p1) + '</span>' +
         '<div class="k-score-box ' + boxCls + '">' +
           '<span class="k-score-num ' + s1cls + '">' + m.score1 + '</span>' +
           '<span class="k-score-sep">:</span>' +
           '<span class="k-score-num ' + s2cls + '">' + m.score2 + '</span>' +
         '</div>' +
-        '<span class="k-player-name right' + (w2 ? ' winner' : w1 ? ' loser' : '') + '">' + m.p2 + (w2 ? ' 🏆' : '') + '</span>' +
+        '<span class="k-player-name right' + (w2 ? ' winner' : w1 ? ' loser' : '') + '">' + fmtNameInline(m.p2) + (w2 ? ' 🏆' : '') + '</span>' +
       '</div>' +
       '<div></div>' +
     '</div>';
