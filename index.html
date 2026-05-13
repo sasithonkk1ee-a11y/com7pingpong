@@ -23,14 +23,14 @@
     <div style="font-family:'Orbitron',monospace;font-size:clamp(20px,4vw,32px);font-weight:700;color:#fff;letter-spacing:3px;text-shadow:0 0 30px rgba(255,255,255,0.15);">TOP PLAYERS</div>
     <div style="font-family:'Anuphan',sans-serif;font-size:15px;color:rgba(255,255,255,0.4);margin-top:6px;letter-spacing:0.1em;">Hall of Fame</div>
   </div>
-  <div class="top-players-section-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;margin:0 auto;">
-    <div>
+  <div class="top-players-section-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:0 auto;align-items:start;">
+    <div style="display:flex;flex-direction:column;">
       <div style="text-align:center;font-size:13px;font-weight:700;letter-spacing:2px;color:#64b5f6;margin-bottom:18px;font-family:'Anuphan',sans-serif;opacity:0.85;">MEN'S 🏓</div>
-      <div class="podium-row" id="men-podium"></div>
+      <div class="podium-row" id="men-podium" style="align-items:stretch;"></div>
     </div>
-    <div>
+    <div style="display:flex;flex-direction:column;">
       <div style="text-align:center;font-size:13px;font-weight:700;letter-spacing:2px;color:#f48fb1;margin-bottom:18px;font-family:'Anuphan',sans-serif;opacity:0.85;">WOMEN'S 🏓</div>
-      <div class="podium-row" id="women-podium"></div>
+      <div class="podium-row" id="women-podium" style="align-items:stretch;"></div>
     </div>
   </div>
 </div>
@@ -102,7 +102,7 @@
       <thead>
         <tr>
           <th>อันดับ</th><th>รูป</th><th>ชื่อผู้เล่น</th>
-          <th>สายการแข่งขัน</th><th>แข่ง</th><th>ชนะ</th><th>แพ้</th>
+          <th>แข่ง</th><th>ชนะ</th><th>แพ้</th>
           <th>เซต ได้/เสีย</th><th>แต้ม</th><th>% ชนะ</th><th>สถานะ</th>
         </tr>
       </thead>
@@ -148,6 +148,13 @@
 <div class="pp-loader" id="pp-loader" style="position:fixed;inset:0;z-index:9990;background:var(--dark);">
   <div class="pp-ball"></div>
   <div class="pp-loader-text">กำลังโหลดข้อมูล...</div>
+</div>
+
+<!-- Photo Lightbox -->
+<div id="photo-lightbox" onclick="closePhotoModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:16px;cursor:pointer;">
+  <img id="photo-lightbox-img" src="" alt="" style="max-width:85vw;max-height:75vh;border-radius:16px;box-shadow:0 0 60px rgba(0,229,255,0.3);border:2px solid rgba(0,229,255,0.3);object-fit:contain;">
+  <div id="photo-lightbox-name" style="font-family:'Anuphan',sans-serif;font-size:20px;font-weight:700;color:#fff;text-shadow:0 0 20px rgba(0,229,255,0.5);text-align:center;"></div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.4);">แตะที่ใดก็ได้เพื่อปิด</div>
 </div>
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
