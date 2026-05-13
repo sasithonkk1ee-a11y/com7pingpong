@@ -362,8 +362,11 @@ function parseName(name){
   var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
   var rawFirst = nickM ? nickM[1].trim() : noPre;
   var rawNick  = nickM ? nickM[2].trim() : '';
-  var firstName = rawFirst ? 'คุณ ' + rawFirst.replace(/^คุณ\s+/i,'') : '';
-  var nickName  = rawNick  ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
+  // strip "คุณ " ซ้ำออกทั้งหมด แล้วเติมกลับครั้งเดียว
+  var cleanFirst = rawFirst.replace(/^(คุณ\s+)+/i,'').trim();
+  var cleanNick  = rawNick.replace(/^(คุณ\s+)+/i,'').trim();
+  var firstName = cleanFirst ? 'คุณ ' + cleanFirst : '';
+  var nickName  = cleanNick  ? 'คุณ ' + cleanNick  : '';
   return { firstName: firstName, nickName: nickName, slot: slot };
 }
 function fmtNameInline(name){
@@ -436,10 +439,10 @@ function renderPodium(containerId, gender) {
       ava +
       '<div class="k-podium-name">' + (function(n){
         var p = parseName(n);
-        var out = p.firstName || ('คุณ ' + n);
-        if(p.nickName) out += '<br><span style="font-size:12px;opacity:0.7;">('+p.nickName+')</span>';
-        if(p.slot)     out += '<br><span style="font-family:\'Orbitron\',monospace;font-size:11px;color:#00e5ff;">'+p.slot+'</span>';
-        return out;
+        var fn = p.firstName || ('คุณ ' + n);
+        var nn = p.nickName ? '<div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:2px;">('+p.nickName+')</div>' : '';
+        var sl = p.slot ? '<div style="font-family:\'Orbitron\',monospace;font-size:13px;font-weight:700;color:#00e5ff;margin-top:3px;">'+p.slot+'</div>' : '';
+        return '<span style="font-weight:700;">'+fn+'</span>' + nn + sl;
       })(p.name) + '</div>' +
       '<div class="k-podium-pts">' + p.points + ' pts</div>' +
     '</div>';
