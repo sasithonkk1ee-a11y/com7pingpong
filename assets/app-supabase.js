@@ -966,11 +966,11 @@ function matchCard(m){
     '<div></div>'+
 
     /* ── match-center: truly centered ── */
-    '<div style="display:flex;justify-content:center;align-items:flex-start;">'+
+    '<div style="display:flex;justify-content:center;align-items:center;">'+
 
-      '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:normal;overflow:hidden;min-width:0;line-height:1.3;">'+
+      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;overflow:hidden;min-width:0;">'+
         fmtNameWithDept(m.p1, true, w1)+
-      '</span>'+
+      '</div>'+
 
       '<div class="fix-score-box '+boxCls+'" style="width:70px;min-width:70px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;">'+
         '<span class="fix-score-num '+s1cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score1+'</span>'+
@@ -978,9 +978,9 @@ function matchCard(m){
         '<span class="fix-score-num '+s2cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score2+'</span>'+
       '</div>'+
 
-      '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:normal;overflow:hidden;min-width:0;line-height:1.3;">'+
+      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;overflow:hidden;min-width:0;">'+
         fmtNameWithDept(m.p2, false, w2)+
-      '</span>'+
+      '</div>'+
 
     '</div>'+
 
@@ -1050,72 +1050,113 @@ function fixtureRow(m, idx){
   var isDone = m.status === 'completed';
   var w1 = isDone && m.score1 > m.score2;
   var w2 = isDone && m.score2 > m.score1;
-  var gTag = m.gender==='M'
-    ? '<span class="fix-gender-tag fix-gender-m">MEN\'S</span>'
-    : '<span class="fix-gender-tag fix-gender-f">WOMEN\'S</span>';
 
-  var dateLabel, dateInfo, timeStr;
+  // ── Date / time ──
+  var dateLabel = '', timeStr = '', roundLabel = m.round || '';
   if(m.date){
     var d = new Date(m.date);
     var dayNames = ['อา','จ','อ','พ','พฤ','ศ','ส'];
     var monthNames = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     dateLabel = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()];
     timeStr   = m.time ? m.time+' น.' : '';
-    dateInfo  = timeStr || m.round;
   } else {
     dateLabel = 'แมตช์ที่ '+(idx+1);
-    dateInfo  = m.round;
-    timeStr   = '';
   }
 
-  var boxCls = isDone ? 'box-done' : isLive ? 'box-live' : '';
-  var s1Cls  = isDone ? (w1?'s-win':'s-lose') : 's-neutral';
-  var s2Cls  = isDone ? (w2?'s-win':'s-lose') : 's-neutral';
-  var genderClass = m.gender === 'F' ? ' fix-women' : '';
+  // ── Gender accent ──
+  var isMen = m.gender === 'M';
+  var genderClass = isMen ? '' : ' fix-women';
+  var gTag = isMen
+    ? '<span class="fix-gender-tag fix-gender-m">MEN\'S</span>'
+    : '<span class="fix-gender-tag fix-gender-f">WOMEN\'S</span>';
 
-  // Status badge — กระชับ ไม่ซ้ำซ้อน
+  // ── Score boxes ──
+  var boxCls = isDone ? 'box-done' : isLive ? 'box-live' : '';
+  var s1Cls  = isDone ? (w1 ? 's-win' : 's-lose') : 's-neutral';
+  var s2Cls  = isDone ? (w2 ? 's-win' : 's-lose') : 's-neutral';
+
+  // ── Status badge ──
   var statusHtml = isLive
     ? '<span class="fix-status-badge badge-live"><span class="live-dot"></span>LIVE</span>'
     : isDone
       ? '<span class="fix-status-badge badge-done">✓ จบแล้ว</span>'
-      : '<span class="fix-status-badge badge-upcoming">⏳ รอแข่ง</span>';
+      : '<span class="fix-status-badge badge-upcoming">🕐 รอแข่ง</span>';
 
-  return '<div class="fix-row'+(isLive?' fix-live':'')+genderClass+'" id="fix-row-'+m.id+'">'+
+  // ── Player name block ──
+  function playerBlock(name, isWinner, isLoser, alignRight){
+    var player = state.players.find(function(pl){ return pl.name === name; });
+    var team = player ? player.team : '';
+    var p = parseName(name);
+    var fn = p.firstName || ('คุณ ' + name);
+    var nn = p.nickName ? '<span class="frow-nick">('+p.nickName+')</span>' : '';
+    var slotPill = p.slot ? '<span class="frow-slot">'+p.slot+'</span>' : '';
+    var trophy = isWinner ? '<span class="frow-trophy">🏆</span>' : '<span class="frow-trophy-ph"></span>';
+    var dept = (team && team !== 'ทีม/แผนก') ? team : '';
+    var nameCls = 'frow-name'+(isWinner?' frow-winner':'');
 
-    // ── Date column ──
-    '<div class="fix-date">'+
-      '<div class="fix-date-day">'+dateLabel+'</div>'+
-      (timeStr ? '<div class="fix-date-info">'+timeStr+'</div>' : '<div class="fix-date-info">'+m.round+'</div>')+
-      gTag+
-    '</div>'+
+    if(alignRight){
+      // Grid 2 cols: [name+dept] [slot+trophy]
+      // dept จะอยู่ใต้ชื่อพอดี ขอบขวาตรงกับ ) เสมอ
+      var rightCol = '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;align-self:flex-start;">'
+        +slotPill+trophy
+      +'</div>';
+      var leftCol = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+        +'<span class="'+nameCls+'">'+fn+nn+'</span>'
+        +(dept ? '<div class="frow-dept" style="text-align:right;">'+dept+'</div>' : '')
+      +'</div>';
+      return '<div class="frow-player" style="display:flex;flex-direction:row;align-items:center;justify-content:flex-end;gap:5px;width:100%;">'
+        +leftCol+rightCol
+      +'</div>';
+    } else {
+      // ขวา: mirror ฝั่งซ้าย
+      // row (flex-row): [trophy+slot] [name+dept col]
+      // dept ขอบซ้ายตรง "ค" ของชื่อ
+      var leftCol2 = '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;align-self:flex-start;">'
+        +trophy+slotPill
+      +'</div>';
+      var rightCol2 = '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">'
+        +'<span class="'+nameCls+'">'+fn+nn+'</span>'
+        +(dept ? '<div class="frow-dept">'+dept+'</div>' : '')
+      +'</div>';
+      return '<div class="frow-player" style="display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:5px;width:100%;">'
+        +leftCol2+rightCol2
+      +'</div>';
+    }
+  }
 
-    // ── Player A ──
-    '<div class="fix-player-a">'+
-      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" >'+
-        fmtNameWithDept(m.p1, true, w1)+
-      '</div>'+
-    '</div>'+
+  return '<div class="fix-row'+(isLive?' fix-live':'')+genderClass+'" id="fix-row-'+m.id+'">'
 
-    // ── Score ──
-    '<div class="fix-score-box '+boxCls+'">'+
-      '<span class="fix-score-num '+s1Cls+'">'+m.score1+'</span>'+
-      '<span class="fix-score-sep">:</span>'+
-      '<span class="fix-score-num '+s2Cls+'">'+m.score2+'</span>'+
-    '</div>'+
+    // ── Col 1: Date ──
+    +'<div class="fix-date">'
+      +'<div class="fix-date-day">'+dateLabel+'</div>'
+      +(timeStr ? '<div class="fix-date-info">'+timeStr+'</div>' : '')
+      +(roundLabel ? '<div class="fix-date-round">'+roundLabel+'</div>' : '')
+      +gTag
+    +'</div>'
 
-    // ── Player B ──
-    '<div class="fix-player-b">'+
-      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'">'+
-        fmtNameWithDept(m.p2, false, w2)+
-      '</div>'+
-    '</div>'+
+    // ── Col 2: Player A (right-aligned) ──
+    +'<div class="fix-player-a">'
+      +playerBlock(m.p1, w1, w2, true)
+    +'</div>'
 
-    // ── Status column — badge เดียว จบ ──
-    '<div class="fix-status">'+
-      statusHtml+
-    '</div>'+
+    // ── Col 3: Score ──
+    +'<div class="fix-score-wrap">'
+      +'<div class="fix-score-inner '+boxCls+'">'
+        +'<span class="fix-score-num '+s1Cls+'">'+m.score1+'</span>'
+        +'<span class="fix-score-sep">:</span>'
+        +'<span class="fix-score-num '+s2Cls+'">'+m.score2+'</span>'
+      +'</div>'
+    +'</div>'
 
-  '</div>';
+    // ── Col 4: Player B (left-aligned) ──
+    +'<div class="fix-player-b">'
+      +playerBlock(m.p2, w2, w1, false)
+    +'</div>'
+
+    // ── Col 5: Status ──
+    +'<div class="fix-status">'+statusHtml+'</div>'
+
+  +'</div>';
 }
 
 var ROUND_ORDER = ['สาย A','สาย B','สาย C','สาย D','Semi Final','Final'];
