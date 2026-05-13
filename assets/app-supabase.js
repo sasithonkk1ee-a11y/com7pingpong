@@ -446,7 +446,10 @@ async function addPlayer() {
   }
 
   // รวมชื่อ: "คุณ ชื่อจริง (คุณ ชื่อเล่น) สาย"
-  var namePart = 'คุณ ' + firstname + (nickname ? ' (คุณ ' + nickname + ')' : '');
+  // ตัด "คุณ" ออกจาก firstname และ nickname ก่อน (ป้องกันซ้ำ)
+  var cleanFirst = firstname.replace(/^คุณ\s+/i, '').trim();
+  var cleanNick = nickname.replace(/^คุณ\s+/i, '').trim();
+  var namePart = 'คุณ' + cleanFirst + (cleanNick ? ' (คุณ' + cleanNick + ')' : '');
   var fullName = slot ? namePart + ' ' + slot : namePart;
   var name = fullName; // compat
 
@@ -558,7 +561,10 @@ async function saveEditPlayer() {
   var newName = document.getElementById('edit-player-name').value.trim();
   var newNick = document.getElementById('edit-player-nickname') ? document.getElementById('edit-player-nickname').value.trim() : '';
   var newSlot = document.getElementById('edit-player-slot') ? document.getElementById('edit-player-slot').value.trim().toUpperCase() : '';
-  var namePart = 'คุณ ' + newName + (newNick ? ' (คุณ ' + newNick + ')' : '');
+  // ตัด "คุณ " ออกก่อน (ป้องกันซ้ำ)
+  var cleanNewName = newName.replace(/^คุณ\s+/i, '').trim();
+  var cleanNewNick = newNick.replace(/^คุณ\s+/i, '').trim();
+  var namePart = 'คุณ ' + cleanNewName + (cleanNewNick ? ' (คุณ ' + cleanNewNick + ')' : '');
   var fullName = newSlot ? namePart + ' ' + newSlot : namePart;
   if (!newName) {
     showToast('กรุณากรอกชื่อ', true);
@@ -960,10 +966,10 @@ function matchCard(m){
     '<div></div>'+
 
     /* ── match-center: truly centered ── */
-    '<div style="display:flex;justify-content:center;align-items:center;">'+
+    '<div style="display:flex;justify-content:center;align-items:flex-start;">'+
 
-      '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+
-        (w1?'🏆 ':'')+fmtNameInline(m.p1)+
+      '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:normal;overflow:hidden;min-width:0;line-height:1.3;">'+
+        fmtNameWithDept(m.p1, true, w1)+
       '</span>'+
 
       '<div class="fix-score-box '+boxCls+'" style="width:70px;min-width:70px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;">'+
@@ -972,8 +978,8 @@ function matchCard(m){
         '<span class="fix-score-num '+s2cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score2+'</span>'+
       '</div>'+
 
-      '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+
-        fmtNameInline(m.p2)+(w2?' 🏆':'')+
+      '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:normal;overflow:hidden;min-width:0;line-height:1.3;">'+
+        fmtNameWithDept(m.p2, false, w2)+
       '</span>'+
 
     '</div>'+
@@ -1086,7 +1092,7 @@ function fixtureRow(m, idx){
     // ── Player A ──
     '<div class="fix-player-a">'+
       '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" >'+
-        (w1?'🏆 ':'')+fmtNameInline(m.p1)+
+        fmtNameWithDept(m.p1, true, w1)+
       '</div>'+
     '</div>'+
 
@@ -1100,7 +1106,7 @@ function fixtureRow(m, idx){
     // ── Player B ──
     '<div class="fix-player-b">'+
       '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'">'+
-        fmtNameInline(m.p2)+(w2?' 🏆':'')+
+        fmtNameWithDept(m.p2, false, w2)+
       '</div>'+
     '</div>'+
 
@@ -1203,7 +1209,7 @@ function renderStandings(){
 
   function buildSection(list, genderLabel, genderColor){
     if(!list.length) return '';
-    var html = '<tr class="standings-section-divider"><td colspan="11">'+
+    var html = '<tr class="standings-section-divider"><td colspan="10">'+
       '<span class="standings-section-label" style="color:'+genderColor+'">'+genderLabel+'</span>'+
     '</td></tr>';
     var displayRank = 0;
@@ -1234,11 +1240,6 @@ function renderStandings(){
           return fmtNameBlock(name, p.team, gPill);
         })(p.name)+
         '</td>'+
-        '<td style="text-align:center;font-family:\'Orbitron\',monospace;">'+(function(name){
-          var m = name.match(/([A-D])(\d+)\s*$/i);
-          if(!m) return '<span style="color:var(--muted)">-</span>';
-          return '<span style="font-size:13px;font-weight:700;color:var(--cyan);">'+m[1]+m[2]+'</span>';
-        })(p.name)+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;">'+p.played+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:var(--win);font-weight:700;">'+p.wins+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:rgba(248,81,73,0.8);">'+p.losses+'</td>'+
@@ -1300,7 +1301,7 @@ function renderStandings(){
   }
 
   document.getElementById('standings-body').innerHTML = rows ||
-    '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">ไม่พบผู้เล่น</td></tr>';
+    '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">ไม่พบผู้เล่น</td></tr>';
 }
 
 function filterStandings(){
@@ -1341,8 +1342,11 @@ function parseName(name){
   var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
   var rawFirst = nickM ? nickM[1].trim() : noPre;
   var rawNick  = nickM ? nickM[2].trim() : '';
-  var firstName = rawFirst ? 'คุณ ' + rawFirst.replace(/^คุณ\s+/i,'') : '';
-  var nickName  = rawNick  ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
+  // strip "คุณ " ซ้ำออกทั้งหมด แล้วเติมกลับครั้งเดียว
+  var cleanFirst = rawFirst.replace(/^(คุณ\s+)+/i,'').trim();
+  var cleanNick  = rawNick.replace(/^(คุณ\s+)+/i,'').trim();
+  var firstName = cleanFirst ? 'คุณ' + cleanFirst : '';
+  var nickName  = cleanNick  ? 'คุณ' + cleanNick  : '';
   return { firstName: firstName, nickName: nickName, slot: slot };
 }
 
@@ -1351,10 +1355,32 @@ function parseName(name){
 function fmtNameInline(name){
   if(!name) return '';
   var p = parseName(name);
-  var out = p.firstName || ('คุณ ' + name);
+  var out = p.firstName || ('คุณ' + name);
   if(p.nickName) out += ' (' + p.nickName + ')';
   if(p.slot)     out += ' ' + p.slot;
   return out;
+}
+
+// สร้าง HTML ชื่อผู้เล่นแบบ 2 บรรทัด (ใช้ใน match card / fixture row)
+// บรรทัด 1: คุณ ชื่อจริง (คุณ ชื่อเล่น) A2  [🏆 ถ้าชนะ]
+// บรรทัด 2: แผนก (สีเทา)
+function fmtNameWithDept(name, alignRight, isWinner){
+  if(!name) return '';
+  var player = state.players.find(function(pl){ return pl.name === name; });
+  var team = player ? player.team : '';
+  var p = parseName(name);
+  var fn = p.firstName || ('คุณ' + name);
+  var nn = p.nickName ? ' <span style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:400;">('+p.nickName+')</span>' : '';
+  var slotSpan = p.slot
+    ? ' <span style="font-family:\'Orbitron\',monospace;font-size:11px;font-weight:700;color:var(--cyan);">'+p.slot+'</span>'
+    : '';
+  var trophy = isWinner ? '🏆' : '';
+  var trophyLeft  = (isWinner && alignRight)  ? '🏆' : '';
+  var trophyRight = (isWinner && !alignRight) ? '🏆' : '';
+  var teamHtml = (team && team !== 'ทีม/แผนก')
+    ? '<div style="font-size:13px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;margin-top:2px;">'+team+'</div>'
+    : '';
+  return '<div style="font-size:18px;font-weight:700;line-height:1.4;white-space:normal;">'+trophyLeft+fn+nn+slotSpan+trophyRight+'</div>'+teamHtml;
 }
 
 // สร้าง HTML ชื่อผู้เล่นแบบ block (ใช้ใน standings / podium card)
@@ -1363,14 +1389,11 @@ function fmtNameBlock(name, team, gPill){
   var p = parseName(name);
   var fn = p.firstName || ('คุณ ' + name);
   var nn = p.nickName ? '<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+p.nickName+')</span>' : '';
-  var slotHtml = p.slot
-    ? '<div style="margin-top:2px;font-family:\'Orbitron\',monospace;font-size:11px;font-weight:700;color:var(--cyan);">'+p.slot+'</div>'
-    : '';
   var teamHtml = team
     ? '<div style="margin-top:1px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+team+'</div>'
     : '';
   var pillHtml = gPill ? '<div style="margin-top:3px;">'+gPill+'</div>' : '';
-  return '<div class="player-name-cell">'+fn+nn+'</div>'+slotHtml+teamHtml+pillHtml;
+  return '<div class="player-name-cell">'+fn+nn+'</div>'+teamHtml+pillHtml;
 }
 
 // Helper เดิม (compat)
@@ -1467,11 +1490,11 @@ function renderPlayerMgmt(){
       var rawFirst = nickMatch ? nickMatch[1].trim() : '';
       var rawNick  = nickMatch ? nickMatch[2].trim() : '';
       // เพิ่ม "คุณ " นำหน้าชื่อเล่นถ้ายังไม่มี
-      var nickDisplay = rawNick ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
+      var nickDisplay = rawNick ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ' + rawNick) : '';
       // ถ้าไม่มีชื่อจริง (เช่น ชื่อเต็มเป็น "คุณ (โตส)") ให้ใช้ชื่อเล่นเป็นชื่อจริงแทน
       var firstName = rawFirst
-        ? 'คุณ ' + rawFirst
-        : (nickDisplay ? nickDisplay : 'คุณ ' + nameNoPre.replace(/^\(|\)$/g, '').trim());
+        ? 'คุณ' + rawFirst
+        : (nickDisplay ? nickDisplay : 'คุณ' + nameNoPre.replace(/^\(|\)$/g, '').trim());
       var nickName = nickDisplay || '-';
       html += '<tr>'+
         '<td style="color:var(--muted)">'+(i+1)+'</td>'+
