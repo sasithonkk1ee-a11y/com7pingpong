@@ -221,8 +221,10 @@ async function recalcAndSyncPlayersToSupabase() {
 
   try {
     await Promise.all(updates);
+    renderAll();
   } catch (error) {
     console.error('Error syncing player stats:', error);
+    renderAll();
   }
 }
 
@@ -675,25 +677,27 @@ async function saveEditMatch() {
     date: document.getElementById('edit-match-date').value || '',
     time: document.getElementById('edit-match-time').value || '',
     sets: (function(){
-      // อ่านค่าล่าสุดจาก DOM
+      // อ่านค่าจาก DOM โดยตรง ไม่พึ่ง _editSets
+      var result = [];
       var container = document.getElementById('set-scores-container');
       if(container){
-        container.querySelectorAll('.set-row').forEach(function(row, i){
+        container.querySelectorAll('.set-row').forEach(function(row){
           var aEl = row.querySelector('.set-a');
           var bEl = row.querySelector('.set-b');
-          if(!window._editSets) window._editSets = [];
-          if(!window._editSets[i]) window._editSets[i] = {a:0,b:0};
-          if(aEl) window._editSets[i].a = parseInt(aEl.value) || 0;
-          if(bEl) window._editSets[i].b = parseInt(bEl.value) || 0;
+          result.push({
+            a: aEl ? (parseInt(aEl.value) || 0) : 0,
+            b: bEl ? (parseInt(bEl.value) || 0) : 0
+          });
         });
       }
-      return window._editSets || [];
+      return result;
     })()
   };
   if (window.supabaseClient) {
     const success = await updateMatchInSupabase(id, updates);
     if (success) {
       closeEditMatchModal();
+      renderAll();
       showToast('✅ แก้ไขผลแมตช์สำเร็จ');
       return;
     }
@@ -892,7 +896,12 @@ function renderTopPlayers(){
 
   function card(p, rank){
     if(!p) return '<div class="podium-card" style="opacity:0.25;flex:1;max-width:110px"><div style="padding:20px;font-size:28px;text-align:center">?</div></div>';
-    return '<div class="podium-card rank-'+rank+'"><div class="rank-badge">'+rank+'</div>'+podiumAva(p)+'<div class="podium-name">'+p.name+'</div><div class="podium-pts">'+((p.played||0))+' Match</div></div>';
+    var parsed = parseName(p.name);
+    var displayName = parsed.firstName || ('คุณ ' + p.name);
+    if(parsed.nickName) displayName += '<br><span style="font-size:11px;opacity:0.7;">('+parsed.nickName+')</span>';
+    if(parsed.slot)     displayName += '<br><span style="font-family:\'Orbitron\',monospace;font-size:11px;color:var(--cyan);">'+parsed.slot+'</span>';
+    var teamHtml = p.team ? '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">'+p.team+'</div>' : '';
+    return '<div class="podium-card rank-'+rank+'"><div class="rank-badge">'+rank+'</div>'+podiumAva(p)+'<div class="podium-name" style="text-align:center;line-height:1.4;">'+displayName+'</div>'+teamHtml+'<div class="podium-pts">'+((p.played||0))+' Match</div></div>';
   }
 
   var mOrder = [men[1], men[0], men[2]];
@@ -954,7 +963,7 @@ function matchCard(m){
     '<div style="display:flex;justify-content:center;align-items:center;">'+
 
       '<span class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+
-        (w1?'🏆 ':'')+m.p1+
+        (w1?'🏆 ':'')+fmtNameInline(m.p1)+
       '</span>'+
 
       '<div class="fix-score-box '+boxCls+'" style="width:70px;min-width:70px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;">'+
@@ -964,7 +973,7 @@ function matchCard(m){
       '</div>'+
 
       '<span class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;font-size:14px;font-weight:700;font-family:\'Anuphan\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+
-        m.p2+(w2?' 🏆':'')+
+        fmtNameInline(m.p2)+(w2?' 🏆':'')+
       '</span>'+
 
     '</div>'+
@@ -1077,7 +1086,7 @@ function fixtureRow(m, idx){
     // ── Player A ──
     '<div class="fix-player-a">'+
       '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" >'+
-        (w1?'🏆 ':'')+m.p1+
+        (w1?'🏆 ':'')+fmtNameInline(m.p1)+
       '</div>'+
     '</div>'+
 
@@ -1091,7 +1100,7 @@ function fixtureRow(m, idx){
     // ── Player B ──
     '<div class="fix-player-b">'+
       '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'">'+
-        m.p2+(w2?' 🏆':'')+
+        fmtNameInline(m.p2)+(w2?' 🏆':'')+
       '</div>'+
     '</div>'+
 
@@ -1219,17 +1228,10 @@ function renderStandings(){
         '<td style="text-align:center;width:44px;"><div class="rank-cell">'+rankIcon+'</div></td>'+
         '<td>'+ava(p,36)+'</td>'+
         '<td>'+(function(name){
-          var slotM = name.match(/\s([A-D]\d+)\s*$/i);
-          var noSlot = slotM ? name.replace(/\s([A-D]\d+)\s*$/i,'').trim() : name;
-          var noPre = noSlot.replace(/^คุณ\s+/i,'').trim();
-          var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
-          var fn = 'คุณ '+(nickM?nickM[1].trim():noPre);
-          var rawNn = nickM ? nickM[2].trim() : '';
-          var dispNn = rawNn ? (/^คุณ\s/i.test(rawNn) ? rawNn : 'คุณ ' + rawNn) : '';
-          var nn = dispNn?'<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+dispNn+')</span>':'';
-          return '<div class="player-name-cell">'+fn+nn+'</div>'+
-            '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
-            '<div style="margin-top:3px;">'+gPill+'</div>';
+          var gPill = p.gender==='M'
+            ? '<span class="gender-pill-m">♂ M</span>'
+            : '<span class="gender-pill-f">♀ W</span>';
+          return fmtNameBlock(name, p.team, gPill);
         })(p.name)+
         '</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;">'+(function(name){
@@ -1279,8 +1281,7 @@ function renderStandings(){
         '<td><span class="rank-num '+rc+'">'+displayRank+'</span></td>'+
         '<td>'+ava(p,38)+'</td>'+
         '<td colspan="2">'+
-          '<div class="player-name-cell">'+displayPlayerName(p.name)+'</div>'+
-          '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
+          fmtNameBlock(p.name, p.team, null)+
         '</td>'+
         '<td>'+p.played+'</td>'+
         '<td class="stat-win">'+p.wins+'</td>'+
@@ -1328,10 +1329,54 @@ function filterByGender(g, btn){
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
 function el(id){ return document.getElementById(id); }
 
-// Helper: เพิ่ม "คุณ" นำหน้าชื่อถ้ายังไม่มี
+// ─── NAME PARSER HELPER ───────────────────────────────────────────────────────
+// แยกชื่อเต็มออกเป็น { firstName, nickName, slot }
+// เช่น "คุณ ภูเบธ (คุณ โตส) A2" → { firstName:"คุณ ภูเบธ", nickName:"คุณ โตส", slot:"A2" }
+function parseName(name){
+  if(!name) return { firstName:'', nickName:'', slot:'' };
+  var slotM = name.match(/\s([A-D]\d+)\s*$/i);
+  var slot = slotM ? slotM[1].toUpperCase() : '';
+  var noSlot = slotM ? name.replace(/\s([A-D]\d+)\s*$/i,'').trim() : name;
+  var noPre = noSlot.replace(/^คุณ\s+/i,'').trim();
+  var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
+  var rawFirst = nickM ? nickM[1].trim() : noPre;
+  var rawNick  = nickM ? nickM[2].trim() : '';
+  var firstName = rawFirst ? 'คุณ ' + rawFirst.replace(/^คุณ\s+/i,'') : '';
+  var nickName  = rawNick  ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
+  return { firstName: firstName, nickName: nickName, slot: slot };
+}
+
+// สร้าง HTML ชื่อผู้เล่นแบบ inline (ใช้ใน match card / podium)
+// เช่น "คุณ ภูเบธ (คุณ โตส) A2"
+function fmtNameInline(name){
+  if(!name) return '';
+  var p = parseName(name);
+  var out = p.firstName || ('คุณ ' + name);
+  if(p.nickName) out += ' (' + p.nickName + ')';
+  if(p.slot)     out += ' ' + p.slot;
+  return out;
+}
+
+// สร้าง HTML ชื่อผู้เล่นแบบ block (ใช้ใน standings / podium card)
+// บรรทัด 1: ชื่อ + ชื่อเล่น  บรรทัด 2: แผนก  บรรทัด 3: สาย
+function fmtNameBlock(name, team, gPill){
+  var p = parseName(name);
+  var fn = p.firstName || ('คุณ ' + name);
+  var nn = p.nickName ? '<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+p.nickName+')</span>' : '';
+  var slotHtml = p.slot
+    ? '<div style="margin-top:2px;font-family:\'Orbitron\',monospace;font-size:11px;font-weight:700;color:var(--cyan);">'+p.slot+'</div>'
+    : '';
+  var teamHtml = team
+    ? '<div style="margin-top:1px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+team+'</div>'
+    : '';
+  var pillHtml = gPill ? '<div style="margin-top:3px;">'+gPill+'</div>' : '';
+  return '<div class="player-name-cell">'+fn+nn+'</div>'+slotHtml+teamHtml+pillHtml;
+}
+
+// Helper เดิม (compat)
 function displayPlayerName(name){
-  if(!name) return name;
-  return /^คุณ\s/i.test(name) ? name : 'คุณ ' + name;
+  if(!name) return fmtNameInline(name);
+  return fmtNameInline(name);
 }
 function renderAll(){
   if(el('men-podium'))          renderTopPlayers();
@@ -1650,7 +1695,7 @@ function renderMatchMgmt(){
     html += '<div class="mmgmt-card'+(isLive?' mmgmt-card-live':isDone?' mmgmt-card-done':'')+'">'+
       '<div class="mmgmt-card-main">'+
         '<div class="mmgmt-player mmgmt-player-a'+(w1?' mmgmt-winner':w2?' mmgmt-loser':'')+'">'+
-          (w1?'<span class="mmgmt-trophy">🏆</span> ':'')+(/^คุณ\s/i.test(m.p1)?m.p1:'คุณ '+m.p1)+
+          (w1?'<span class="mmgmt-trophy">🏆</span> ':'')+fmtNameInline(m.p1)+
         '</div>'+
         '<div class="mmgmt-score-wrap">'+
           (isDone||isLive
@@ -1661,7 +1706,7 @@ function renderMatchMgmt(){
           )+
         '</div>'+
         '<div class="mmgmt-player mmgmt-player-b'+(w2?' mmgmt-winner':w1?' mmgmt-loser':'')+'">'+
-          (/^คุณ\s/i.test(m.p2)?m.p2:'คุณ '+m.p2)+(w2?' <span class="mmgmt-trophy">🏆</span>':'')+
+          fmtNameInline(m.p2)+(w2?' <span class="mmgmt-trophy">🏆</span>':'')+
         '</div>'+
       '</div>'+
       '<div class="mmgmt-card-footer">'+
