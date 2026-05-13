@@ -1245,7 +1245,7 @@ function renderStandings(){
           p.setsFor+'/'+p.setsAgainst+
           ' <span style="color:'+setDiffColor+';font-size:11px;">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-family:\'Orbitron\',monospace;font-size:14px;font-weight:900;color:#d29922;text-align:center;">'+ptsFor+'</td>'+
+        '<td style="font-family:\'Orbitron\',monospace;font-size:14px;font-weight:900;color:#d29922;text-align:center;">'+ptsFor+'/'+((p.pointsAgainst)||0)+'</td>'+
         '<td style="min-width:120px;">'+
           '<div class="wpct-wrap">'+
             '<div class="wpct-bar-track"><div class="wpct-bar-fill" style="width:'+winPct+'%"></div></div>'+
@@ -1288,7 +1288,7 @@ function renderStandings(){
         '<td style="font-size:10px;white-space:nowrap">'+p.setsFor+'/'+p.setsAgainst+
           '<span style="font-size:9px;color:'+setDiffColor+';margin-left:3px">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-weight:900;color:var(--gold);font-family:\'Orbitron\',monospace;font-size:13px">'+ptsFor2+'</td>'+
+        '<td style="font-weight:900;color:var(--gold);font-family:\'Orbitron\',monospace;font-size:13px">'+ptsFor2+'/'+((p.pointsAgainst)||0)+'</td>'+
         '<td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:'+p.pct+'%"></div></div><span style="font-size:9px;color:var(--muted);min-width:30px">'+p.pct+'%</span></div></td>'+
         '<td><span class="status-badge '+scClass+'">'+p.status+'</span></td>'+
       '</tr>';
