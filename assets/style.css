@@ -89,7 +89,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 /* PODIUM */
 .top-players-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;}
 .gender-label{text-align:center;font-size:13px;font-weight:500;letter-spacing:0.02em;color:var(--muted);margin-bottom:28px;font-family:'Anuphan',sans-serif;}
-.podium-row{display:flex;gap:16px;justify-content:center;align-items:flex-end;min-height:280px;padding-top:56px;}
+.podium-row{display:flex;gap:16px;justify-content:center;align-items:flex-end;min-height:280px;padding-top:56px;overflow:visible;}
 
 /* Podium card — glassmorphism */
 .podium-card{
