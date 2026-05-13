@@ -938,73 +938,30 @@ function renderOverviewStats(){
   }
 }
 
-// ─── MATCH CARD (Overview recent list) ────────────────────────────────────────
+// ─── MATCH CARD (Overview recent list) — reuse fixtureRow layout ──────────────
 function matchCard(m){
-  var isLive = m.status === 'live';
-  var isDone = m.status === 'completed';
-  var w1 = isDone && m.score1 > m.score2;
-  var w2 = isDone && m.score2 > m.score1;
-  var gC = m.gender === 'M' ? 'gender-m' : 'gender-f';
-  var gL = m.gender === 'M' ? "MEN'S" : "WOMEN'S";
-  var dateStr = '';
-  var timeStr = '';
-  if(m.date){
-    var d = new Date(m.date);
-    var dayNames=['อา','จ','อ','พ','พฤ','ศ','ส'];
-    var monthNames=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    dateStr = dayNames[d.getDay()]+' '+d.getDate()+' '+monthNames[d.getMonth()];
-    timeStr = m.time ? m.time+' น.' : '';
-  }
-
-  var s1cls = isDone ? (w1?'s-win':'s-lose') : 's-neutral';
-  var s2cls = isDone ? (w2?'s-win':'s-lose') : 's-neutral';
-  var boxCls = isLive ? 'box-live' : isDone ? 'box-done' : '';
-
-  return '<div class="match-card'+(isLive?' live-card':'')+'">'+
-
-    /* ── left spacer (same width as info panel) ── */
-    '<div></div>'+
-
-    /* ── match-center: truly centered ── */
-    '<div style="display:flex;justify-content:center;align-items:center;">'+
-
-      '<div class="fix-player-name'+(w1?' winner-name':w2?' loser-name':'')+'" style="flex:1;text-align:right;padding-right:16px;overflow:hidden;min-width:0;">'+
-        fmtNameWithDept(m.p1, true, w1)+
-      '</div>'+
-
-      '<div class="fix-score-box '+boxCls+'" style="width:70px;min-width:70px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;">'+
-        '<span class="fix-score-num '+s1cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score1+'</span>'+
-        '<span style="font-size:13px;color:rgba(255,255,255,0.3);width:10px;text-align:center;display:inline-block;">:</span>'+
-        '<span class="fix-score-num '+s2cls+'" style="font-size:17px;width:24px;text-align:center;font-family:Arial,sans-serif;font-weight:900;display:inline-block;">'+m.score2+'</span>'+
-      '</div>'+
-
-      '<div class="fix-player-name'+(w2?' winner-name':w1?' loser-name':'')+'" style="flex:1;text-align:left;padding-left:16px;overflow:hidden;min-width:0;">'+
-        fmtNameWithDept(m.p2, false, w2)+
-      '</div>'+
-
-    '</div>'+
-
-    /* ── match-info: right column ── */
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding:0 16px 0 12px;border-left:1px solid var(--border2);">'+
-      (isLive?'<span class="live-badge"><span class="live-dot"></span>LIVE</span>':'')+
-      '<span class="match-round" style="font-size:9px;font-family:\'Anuphan\',sans-serif;">'+m.round+'</span>'+
-      '<span class="match-gender '+gC+'" style="font-size:9px;">'+gL+'</span>'+
-      (isDone?'<span style="font-size:9px;color:var(--win);font-family:\'Anuphan\',sans-serif;">✓ จบแล้ว</span>':'')+
-      (m.status==='upcoming'?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;">⏳ รอแข่ง</span>':'')+
-      (dateStr?'<span style="font-size:9px;color:var(--muted);font-family:\'Anuphan\',sans-serif;">'+dateStr+'</span>':'')+
-    '</div>'+
-
-  '</div>';
+  return fixtureRow(m, 0);
 }
 
 function renderRecentMatches(){
-  // แสดงเฉพาะแมตช์ที่จบแล้วหรือกำลังแข่ง (ไม่แสดง upcoming ที่ยังไม่มีคะแนน)
-  var r = state.matches.filter(function(m){
-    return m.status === 'completed' || m.status === 'live';
-  }).slice().reverse().slice(0,5);
-  document.getElementById('recent-matches-list').innerHTML = r.length
-    ? r.map(matchCard).join('')
-    : '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลการแข่งขัน</div>';
+  // กรองเฉพาะแมตช์ที่จบแล้ว เรียงตามวันที่+เวลาล่าสุดก่อน แสดง 5 รายการ
+  var completed = state.matches.filter(function(m){
+    return m.status === 'completed';
+  });
+
+  // เรียงตาม date+time ล่าสุดก่อน ถ้าไม่มีวันที่ใช้ลำดับใน array (index สูง = ใหม่กว่า)
+  completed.sort(function(a, b){
+    var aKey = (a.date || '0000-00-00') + 'T' + (a.time || '00:00');
+    var bKey = (b.date || '0000-00-00') + 'T' + (b.time || '00:00');
+    if(bKey !== aKey) return bKey.localeCompare(aKey); // ล่าสุดก่อน
+    return state.matches.indexOf(b) - state.matches.indexOf(a); // fallback: index สูงกว่า = ใหม่กว่า
+  });
+
+  var recent = completed.slice(0, 5);
+
+  document.getElementById('recent-matches-list').innerHTML = recent.length
+    ? recent.map(function(m, i){ return fixtureRow(m, i); }).join('')
+    : '<div style="text-align:center;color:var(--muted);padding:32px;font-family:\'Anuphan\',sans-serif;">ยังไม่มีการแข่งขันที่จบแล้ว</div>';
 }
 
 // ─── FIXTURE ROW ──────────────────────────────────────────────────────────────
