@@ -1559,8 +1559,10 @@ function openEditMatch(id){
   document.getElementById('edit-match-status').value = m.status;
   document.getElementById('edit-match-date').value   = m.date || '';
   document.getElementById('edit-match-time').value   = m.time || '';
-  // โหลดคะแนนแต่ละเซต
-  window._editSets = (m.sets && Array.isArray(m.sets)) ? JSON.parse(JSON.stringify(m.sets)) : [];
+  // reset _editSets ก่อนเสมอ แล้วโหลดของคู่นี้
+  window._editSets = (m.sets && Array.isArray(m.sets) && m.sets.length > 0)
+    ? JSON.parse(JSON.stringify(m.sets))
+    : [];
   renderSetScores();
   var modal = document.getElementById('edit-match-modal');
   modal.style.display = 'flex';
@@ -1575,15 +1577,7 @@ function closeEditMatchModal(){
 function renderSetScores(){
   var container = document.getElementById('set-scores-container');
   if(!container) return;
-  // อ่านค่าปัจจุบันจาก DOM ก่อน re-render
-  var inputs = container.querySelectorAll('.set-row');
-  inputs.forEach(function(row, i){
-    var aEl = row.querySelector('.set-a');
-    var bEl = row.querySelector('.set-b');
-    if(aEl && window._editSets[i]) window._editSets[i].a = parseInt(aEl.value) || 0;
-    if(bEl && window._editSets[i]) window._editSets[i].b = parseInt(bEl.value) || 0;
-  });
-
+  // ไม่อ่านจาก DOM ก่อน — ใช้ _editSets เป็น source of truth เสมอ
   var sets = window._editSets || [];
   container.innerHTML = sets.map(function(s, i){
     return '<div class="set-row" style="display:flex;align-items:center;gap:8px;">' +
@@ -1598,14 +1592,16 @@ function renderSetScores(){
 
 function addSetRow(){
   if(!window._editSets) window._editSets = [];
-  // อ่านค่าปัจจุบันก่อนเพิ่ม
+  // sync ค่าจาก DOM เข้า _editSets ก่อนเพิ่ม
   var container = document.getElementById('set-scores-container');
   if(container){
     container.querySelectorAll('.set-row').forEach(function(row, i){
       var aEl = row.querySelector('.set-a');
       var bEl = row.querySelector('.set-b');
-      if(aEl && window._editSets[i]) window._editSets[i].a = parseInt(aEl.value) || 0;
-      if(bEl && window._editSets[i]) window._editSets[i].b = parseInt(bEl.value) || 0;
+      if(window._editSets[i]){
+        if(aEl) window._editSets[i].a = parseInt(aEl.value) || 0;
+        if(bEl) window._editSets[i].b = parseInt(bEl.value) || 0;
+      }
     });
   }
   window._editSets.push({a:0, b:0});
@@ -1613,17 +1609,20 @@ function addSetRow(){
 }
 
 function removeSetRow(idx){
-  // อ่านค่าปัจจุบันก่อนลบ
+  if(!window._editSets) return;
+  // sync ค่าจาก DOM เข้า _editSets ก่อนลบ
   var container = document.getElementById('set-scores-container');
   if(container){
     container.querySelectorAll('.set-row').forEach(function(row, i){
       var aEl = row.querySelector('.set-a');
       var bEl = row.querySelector('.set-b');
-      if(aEl && window._editSets[i]) window._editSets[i].a = parseInt(aEl.value) || 0;
-      if(bEl && window._editSets[i]) window._editSets[i].b = parseInt(bEl.value) || 0;
+      if(window._editSets[i]){
+        if(aEl) window._editSets[i].a = parseInt(aEl.value) || 0;
+        if(bEl) window._editSets[i].b = parseInt(bEl.value) || 0;
+      }
     });
   }
-  if(window._editSets) window._editSets.splice(idx, 1);
+  window._editSets.splice(idx, 1);
   renderSetScores();
 }
 
