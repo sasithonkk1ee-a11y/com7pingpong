@@ -2099,7 +2099,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   color:#f0f0f0;line-height:1.35;
   white-space:normal;word-break:break-word;
 }
-.frow-winner{ color:#f0f0f0; }
+.frow-winner{ color:#00bfff; }
 .frow-loser { color:#f0f0f0; }
 
 /* nickname */
