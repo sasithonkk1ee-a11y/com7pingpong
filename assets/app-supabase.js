@@ -1224,13 +1224,19 @@ function renderStandings(){
           var noPre = noSlot.replace(/^คุณ\s+/i,'').trim();
           var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
           var fn = 'คุณ '+(nickM?nickM[1].trim():noPre);
-          var nn = nickM?'<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+nickM[2].trim()+')</span>':'';
+          var rawNn = nickM ? nickM[2].trim() : '';
+          var dispNn = rawNn ? (/^คุณ\s/i.test(rawNn) ? rawNn : 'คุณ ' + rawNn) : '';
+          var nn = dispNn?'<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+dispNn+')</span>':'';
           return '<div class="player-name-cell">'+fn+nn+'</div>'+
             '<div style="margin-top:2px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+p.team+'</div>'+
             '<div style="margin-top:3px;">'+gPill+'</div>';
         })(p.name)+
         '</td>'+
-        '<td style="text-align:center;font-size:13px;font-weight:700;color:var(--cyan);font-family:\'Orbitron\',monospace;">'+(function(name){ var m=name.match(/([A-D])\d+\s*$/); return m?'สาย '+m[1]:'-'; })(p.name)+'</td>'+
+        '<td style="text-align:center;font-family:\'Orbitron\',monospace;">'+(function(name){
+          var m = name.match(/([A-D])(\d+)\s*$/i);
+          if(!m) return '<span style="color:var(--muted)">-</span>';
+          return '<span style="font-size:13px;font-weight:700;color:var(--cyan);">'+m[1]+m[2]+'</span>';
+        })(p.name)+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;">'+p.played+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:var(--win);font-weight:700;">'+p.wins+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:rgba(248,81,73,0.8);">'+p.losses+'</td>'+
@@ -1413,8 +1419,15 @@ function renderPlayerMgmt(){
       var nameNoSlot = slotMatch ? p.name.replace(/\s([A-D]\d+)\s*$/i, '').trim() : p.name;
       var nameNoPre = nameNoSlot.replace(/^คุณ\s+/i, '').trim();
       var nickMatch = nameNoPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
-      var firstName = 'คุณ ' + (nickMatch ? nickMatch[1].trim() : nameNoPre);
-      var nickName = nickMatch ? nickMatch[2].trim() : '-';
+      var rawFirst = nickMatch ? nickMatch[1].trim() : '';
+      var rawNick  = nickMatch ? nickMatch[2].trim() : '';
+      // เพิ่ม "คุณ " นำหน้าชื่อเล่นถ้ายังไม่มี
+      var nickDisplay = rawNick ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
+      // ถ้าไม่มีชื่อจริง (เช่น ชื่อเต็มเป็น "คุณ (โตส)") ให้ใช้ชื่อเล่นเป็นชื่อจริงแทน
+      var firstName = rawFirst
+        ? 'คุณ ' + rawFirst
+        : (nickDisplay ? nickDisplay : 'คุณ ' + nameNoPre.replace(/^\(|\)$/g, '').trim());
+      var nickName = nickDisplay || '-';
       html += '<tr>'+
         '<td style="color:var(--muted)">'+(i+1)+'</td>'+
         '<td style="font-weight:700">'+firstName+'</td>'+
@@ -1454,7 +1467,7 @@ function openEditModal(id){
   }
   var editPhotoInp = document.getElementById('edit-photo-inp');
   if(editPhotoInp) editPhotoInp.value = '';
-  // แยกสายออกจากชื่อ เช่น "คุณ ภูเบธ (โตส) A2" → firstname="ภูเบธ", nickname="โตส", slot="A2"
+  // แยกสายออกจากชื่อ เช่น "คุณ ภูเบธ (คุณ โตส) A2" → firstname="ภูเบธ", nickname="คุณ โตส", slot="A2"
   var slotMatch = p.name.match(/\s([A-D]\d+)\s*$/i);
   var nameNoSlot = slotMatch ? p.name.replace(/\s([A-D]\d+)\s*$/i, '').trim() : p.name;
   var slot = slotMatch ? slotMatch[1].toUpperCase() : '';
@@ -1463,8 +1476,9 @@ function openEditModal(id){
   // แยกชื่อเล่นในวงเล็บ
   var nickMatch = nameNoPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
   var baseName = nickMatch ? nickMatch[1].trim() : nameNoPre;
-  // ลบ "คุณ " นำหน้าชื่อเล่นด้วย
-  var nickname = nickMatch ? nickMatch[2].trim().replace(/^คุณ\s+/i, '') : '';
+  // คง "คุณ " นำหน้าชื่อเล่น ถ้ายังไม่มีให้เพิ่ม
+  var rawNick = nickMatch ? nickMatch[2].trim() : '';
+  var nickname = rawNick ? (/^คุณ\s/i.test(rawNick) ? rawNick : 'คุณ ' + rawNick) : '';
 
   document.getElementById('edit-player-id').value      = p.id;
   document.getElementById('edit-player-name').value    = baseName;
