@@ -475,7 +475,7 @@ body::after {
 .filter-btn.is-active { opacity:1; font-weight:700; }
 
 /* filter button base colors */
-.filter-btn.all      { background:rgba(88,166,255,0.1);  color:var(--accent-blue); border-color:rgba(88,166,255,0.25); }
+.filter-btn.all      { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.2); }
 .filter-btn.winner   { background:rgba(63,185,80,0.08);  color:#3fb950; border-color:rgba(63,185,80,0.2); }
 .filter-btn.inplay   { background:rgba(255,215,0,0.1);   color:#ffd700; border-color:rgba(255,215,0,0.25); }
 .filter-btn.eliminated { background:rgba(248,81,73,0.1); color:#f85149; border-color:rgba(248,81,73,0.25); }
@@ -486,8 +486,8 @@ body::after {
 .filter-btn.all.is-active,
 #gender-btn-all.is-active, #match-gender-btn-all.is-active,
 #mmgmt-btn-all.is-active, #pmgmt-btn-all.is-active, #btab-all.is-active {
-  background:#58a6ff !important; color:#000 !important;
-  border:1px solid #58a6ff !important; box-shadow:0 0 10px rgba(88,166,255,0.4) !important;
+  background:#ffffff !important; color:#000 !important;
+  border:1px solid #ffffff !important; box-shadow:0 0 10px rgba(255,255,255,0.3) !important;
 }
 .filter-btn.winner.is-active, #mmgmt-btn-completed.is-active {
   background:#3fb950 !important; color:#000 !important;
