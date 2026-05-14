@@ -2229,12 +2229,28 @@ function renderBracketSetup() {
 
   el.innerHTML = html;
 
+  // helper: set select value พร้อม fuzzy match กรณีชื่อไม่ตรง 100%
+  function setBracketSelect(sel, nameVal) {
+    if (!sel || !nameVal) return;
+    sel.value = nameVal;
+    if (sel.value === nameVal) return; // match ตรง
+    // fuzzy: ตัด "คุณ " แล้วเทียบ
+    var cleanVal = nameVal.replace(/^(คุณ\s*)+/i, '').trim().toLowerCase();
+    var best = null;
+    Array.from(sel.options).forEach(function(opt) {
+      if (!opt.value) return;
+      var cleanOpt = opt.value.replace(/^(คุณ\s*)+/i, '').trim().toLowerCase();
+      if (cleanOpt === cleanVal) best = opt.value;
+    });
+    if (best) sel.value = best;
+  }
+
   // Restore existing values
   existing.forEach(function(m) {
     var s1 = document.getElementById('bse-p1-' + m.id);
     var s2 = document.getElementById('bse-p2-' + m.id);
-    if (s1 && m.p1) s1.value = m.p1;
-    if (s2 && m.p2) s2.value = m.p2;
+    setBracketSelect(s1, m.p1);
+    setBracketSelect(s2, m.p2);
   });
 }
 
