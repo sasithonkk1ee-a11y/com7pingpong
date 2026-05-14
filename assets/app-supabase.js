@@ -54,19 +54,25 @@ async function loadDataFromSupabase() {
 
     if (matchesError) throw matchesError;
 
-    state.matches = (matchesData || []).map(m => ({
-      id: m.id,
-      p1: m.player1_name || '',
-      p2: m.player2_name || '',
-      score1: m.score1 || 0,
-      score2: m.score2 || 0,
-      round: m.round || '��� A',
-      gender: m.gender === 'women' ? 'F' : 'M',
-      status: m.status === 'finished' ? 'completed' : m.status === 'live' ? 'live' : 'upcoming',
-      date: m.scheduled_at ? m.scheduled_at.split('T')[0] : '',
-      time: m.scheduled_at ? m.scheduled_at.split('T')[1] ? m.scheduled_at.split('T')[1].substring(0, 5) : '' : '',
-      sets: m.sets
-    }));
+    state.matches = (matchesData || []).map(m => {
+      // ใช้ player_id lookup ชื่อจาก players table ก่อน
+      // ถ้าไม่เจอ fallback ไป player_name ใน matches
+      var p1Player = m.player1_id ? state.players.find(p => p.id == m.player1_id) : null;
+      var p2Player = m.player2_id ? state.players.find(p => p.id == m.player2_id) : null;
+      return {
+        id: m.id,
+        p1: (p1Player ? p1Player.name : m.player1_name) || '',
+        p2: (p2Player ? p2Player.name : m.player2_name) || '',
+        score1: m.score1 || 0,
+        score2: m.score2 || 0,
+        round: m.round || 'สาย A',
+        gender: m.gender === 'women' ? 'F' : 'M',
+        status: m.status === 'finished' ? 'completed' : m.status === 'live' ? 'live' : 'upcoming',
+        date: m.scheduled_at ? m.scheduled_at.split('T')[0] : '',
+        time: m.scheduled_at ? m.scheduled_at.split('T')[1] ? m.scheduled_at.split('T')[1].substring(0, 5) : '' : '',
+        sets: m.sets
+      };
+    });
 
     // render ทันทีด้วยข้อมูลจาก Supabase
     _supabaseLoadDone = true;
