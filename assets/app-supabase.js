@@ -1109,7 +1109,7 @@ function fixtureRow(m, idx){
     var team = player ? player.team : '';
     var p = parseName(name);
     var fn = p.firstName || ('คุณ ' + name);
-    var nn = p.nickName ? ' <span class="frow-nick">('+p.nickName+')</span>' : '';
+    var nn = p.nickName ? '<span class="frow-nick">('+p.nickName+')</span>' : '';
     var slotPill = p.slot ? '<span class="frow-slot">'+p.slot+'</span>' : '';
     var dept = (team && team !== 'ทีม/แผนก') ? team : '';
     var nameCls = 'frow-name'+(isWinner?' frow-winner':'');
@@ -1143,8 +1143,9 @@ function fixtureRow(m, idx){
 
   return '<div class="fix-row'+(isLive?' fix-live':'')+genderClass+'" id="fix-row-'+m.id+'">'
 
-    // ── Col 1: Date ──
+    // ── Col 1: Date + Status ──
     +'<div class="fix-date">'
+      +statusHtml
       +'<div class="fix-date-day">'+dateLabel+'</div>'
       +(timeStr ? '<div class="fix-date-info">'+timeStr+'</div>' : '')
       +(roundLabel ? '<div class="fix-date-round">'+roundLabel+'</div>' : '')
@@ -1169,9 +1170,6 @@ function fixtureRow(m, idx){
     +'<div class="fix-player-b">'
       +playerBlock(m.p2, w2, w1, false)
     +'</div>'
-
-    // ── Col 5: Status ──
-    +'<div class="fix-status">'+statusHtml+'</div>'
 
   +'</div>';
 }
@@ -1267,7 +1265,7 @@ function renderStandings(){
 
   function buildSection(list, genderLabel, genderColor){
     if(!list.length) return '';
-    var html = '<tr class="standings-section-divider"><td colspan="10">'+
+    var html = '<tr class="standings-section-divider"><td colspan="11">'+
       '<span class="standings-section-label" style="color:'+genderColor+'">'+genderLabel+'</span>'+
     '</td></tr>';
     var displayRank = 0;
@@ -1298,6 +1296,7 @@ function renderStandings(){
           return fmtNameBlock(name, p.team, gPill);
         })(p.name)+
         '</td>'+
+        '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:12px;font-weight:700;color:var(--cyan);">'+(parseName(p.name).slot||'—')+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;">'+p.played+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:var(--win);font-weight:700;">'+p.wins+'</td>'+
         '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:13px;color:rgba(248,81,73,0.8);">'+p.losses+'</td>'+
@@ -1339,9 +1338,8 @@ function renderStandings(){
       rows += '<tr class="'+rowCls+'">'+
         '<td><span class="rank-num '+rc+'">'+displayRank+'</span></td>'+
         '<td>'+ava(p,38)+'</td>'+
-        '<td colspan="2">'+
-          fmtNameBlock(p.name, p.team, null)+
-        '</td>'+
+        '<td>'+fmtNameBlock(p.name, p.team, null)+'</td>'+
+        '<td style="text-align:center;font-family:\'Orbitron\',monospace;font-size:12px;font-weight:700;color:var(--cyan);">'+(parseName(p.name).slot||'—')+'</td>'+
         '<td>'+p.played+'</td>'+
         '<td class="stat-win">'+p.wins+'</td>'+
         '<td class="stat-lose">'+p.losses+'</td>'+
@@ -1359,7 +1357,7 @@ function renderStandings(){
   }
 
   document.getElementById('standings-body').innerHTML = rows ||
-    '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">ไม่พบผู้เล่น</td></tr>';
+    '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">ไม่พบผู้เล่น</td></tr>';
 }
 
 function filterStandings(){
