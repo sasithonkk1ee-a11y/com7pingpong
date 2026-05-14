@@ -520,7 +520,8 @@ async function addPlayer() {
     const addedPlayer = await addPlayerToSupabase(newPlayer);
     if (addedPlayer) {
       resetPhotoUI();
-      document.getElementById('new-player-name').value = '';
+      if(document.getElementById('new-player-firstname')) document.getElementById('new-player-firstname').value = '';
+      if(document.getElementById('new-player-nickname'))  document.getElementById('new-player-nickname').value = '';
       document.getElementById('new-player-team').value = '';
       if(document.getElementById('new-player-slot')) document.getElementById('new-player-slot').value = '';
       showToast('✅ เพิ่ม ' + fullName + ' สำเร็จ');
@@ -539,7 +540,8 @@ async function addPlayer() {
   state.players.push(playerObj);
   _saveAndBroadcast()
   resetPhotoUI();
-  document.getElementById('new-player-name').value = '';
+  if(document.getElementById('new-player-firstname')) document.getElementById('new-player-firstname').value = '';
+  if(document.getElementById('new-player-nickname'))  document.getElementById('new-player-nickname').value = '';
   document.getElementById('new-player-team').value = '';
   renderAll();
   showToast('✅ เพิ่ม ' + name + ' สำเร็จ (บันทึกในเครื่อง)');
