@@ -2082,6 +2082,55 @@ function handleEditPhoto(e){
 }
 // ─── BRACKET SETUP FUNCTIONS ─────────────────────────────────────────────────
 
+// Helper: update match ใน Supabase โดยไม่ reload state (ใช้ใน bracket loop)
+async function _updateMatchInSupabaseOnly(matchId, updates) {
+  try {
+    const player1 = state.players.find(p => p.name === updates.p1);
+    const player2 = state.players.find(p => p.name === updates.p2);
+    const { error } = await supabaseClient.from('matches').update({
+      player1_id: player1?.id,
+      player2_id: player2?.id,
+      player1_name: updates.p1,
+      player2_name: updates.p2,
+      score1: updates.score1 || 0,
+      score2: updates.score2 || 0,
+      gender: updates.gender === 'M' ? 'men' : 'women',
+      round: updates.round,
+      status: updates.status === 'completed' ? 'finished' : updates.status === 'live' ? 'live' : 'upcoming',
+      scheduled_at: updates.date && updates.time ? updates.date + 'T' + updates.time + ':00' : null
+    }).eq('id', matchId);
+    if (error) throw error;
+    return true;
+  } catch(e) {
+    console.error('_updateMatchInSupabaseOnly error:', e);
+    return false;
+  }
+}
+
+// Helper: insert match ใน Supabase โดยไม่ reload state (ใช้ใน bracket loop)
+async function _addMatchToSupabaseOnly(matchData) {
+  try {
+    const player1 = state.players.find(p => p.name === matchData.p1);
+    const player2 = state.players.find(p => p.name === matchData.p2);
+    const { data, error } = await supabaseClient.from('matches').insert([{
+      player1_id: player1?.id,
+      player2_id: player2?.id,
+      player1_name: matchData.p1,
+      player2_name: matchData.p2,
+      score1: 0, score2: 0,
+      gender: matchData.gender === 'M' ? 'men' : 'women',
+      round: matchData.round,
+      status: 'upcoming',
+      scheduled_at: matchData.date && matchData.time ? matchData.date + 'T' + matchData.time + ':00' : null
+    }]).select();
+    if (error) throw error;
+    return data[0];
+  } catch(e) {
+    console.error('_addMatchToSupabaseOnly error:', e);
+    return null;
+  }
+}
+
 function renderBracketSetup() {
   var el = document.getElementById('bracket-setup-body');
   if (!el) return;
@@ -2170,6 +2219,10 @@ async function removeBracketPair(id) {
   if (window.supabaseClient) {
     const success = await deleteMatchFromSupabase(id);
     if (success) {
+      // ลบออกจาก state ด้วย แล้ว re-render bracket
+      state.matches = state.matches.filter(function(x) { return x.id !== id; });
+      _saveAndBroadcast();
+      renderBracketSetup();
       showToast('🗑️ ลบคู่แล้ว');
       return;
     }
@@ -2212,8 +2265,13 @@ async function saveBracketSetup() {
     };
     var updated = false;
     if (window.supabaseClient) {
-      const success = await updateMatchInSupabase(m.id, updates);
-      if (success) updated = true;
+      // ใช้ _updateMatchInSupabaseOnly — ไม่ reload state เพื่อไม่ให้ bracket reset ระหว่าง loop
+      const success = await _updateMatchInSupabaseOnly(m.id, updates);
+      if (success) {
+        var idx = state.matches.findIndex(function(x) { return x.id === m.id; });
+        if (idx >= 0) state.matches[idx] = Object.assign(state.matches[idx], updates);
+        updated = true;
+      }
     }
     if (!updated) {
       var idx = state.matches.findIndex(function(x) { return x.id === m.id; });
@@ -2242,10 +2300,14 @@ async function saveBracketSetup() {
       date: dEl2 ? dEl2.value : '',  
       time: tEl2 ? tEl2.value : ''
     };
-    var inserted = false;b  
+    var inserted = false;
     if (window.supabaseClient) {
-      const added = await addMatchToSupabase(matchData);
-      if (added) inserted = true;
+      // ใช้ _addMatchToSupabaseOnly — ไม่ reload state เพื่อไม่ให้ bracket reset ระหว่าง loop
+      const added = await _addMatchToSupabaseOnly(matchData);
+      if (added) {
+        state.matches.push(Object.assign({}, matchData, { id: added.id }));
+        inserted = true;
+      }
     }
     if (!inserted) {
       state.matches.push(Object.assign({}, matchData, { id: Date.now().toString() + j }));
