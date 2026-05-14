@@ -84,7 +84,7 @@
     <span style="font-size:15px;color:var(--muted);">🔍</span>
     <input type="text" placeholder="Search Players..." id="search-input" oninput="filterStandings()">
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+  <div class="standings-filter-wrap">
     <div class="filter-btns" style="margin-bottom:0;">
       <button type="button" class="filter-btn all is-active" onclick="filterByStatus('all',this)">ทั้งหมด</button>
       <button type="button" class="filter-btn winner" onclick="filterByStatus('WINNER',this)">WINNER</button>
@@ -120,14 +120,15 @@
     <div class="sec-header-sub">อัปเดตล่าสุด · COM7 Ping Pong League 2026</div>
   </div>
   <div style="position:sticky;top:57px;z-index:90;background:transparent;padding:12px 0 10px;margin-bottom:8px;border-bottom:1px solid rgba(0,229,255,0.1);">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-      <div class="filter-btns" style="margin-bottom:0;" id="match-status-filters">
+    <div class="match-filter-wrap">
+      <div class="match-filter-row">
         <button type="button" class="filter-btn all is-active" onclick="setMatchFilter('all',this)">ทั้งหมด <span id="badge-all" class="fbadge"></span></button>
         <button type="button" class="filter-btn inplay" onclick="setMatchFilter('live',this)">🔴 กำลังแข่ง <span id="badge-live" class="fbadge fbadge-live"></span></button>
-        <button type="button" class="filter-btn winner" onclick="setMatchFilter('completed',this)">✓ จบแล้ว <span id="badge-completed" class="fbadge fbadge-done"></span></button>
         <button type="button" class="filter-btn eliminated" onclick="setMatchFilter('upcoming',this)">⏳ เร็วๆ นี้ <span id="badge-upcoming" class="fbadge"></span></button>
+        <button type="button" class="filter-btn winner" onclick="setMatchFilter('completed',this)">✓ จบแล้ว <span id="badge-completed" class="fbadge fbadge-done"></span></button>
       </div>
-      <div class="filter-btns" style="margin-bottom:0;">
+      <div class="match-filter-divider"></div>
+      <div class="match-filter-row">
         <button type="button" class="filter-btn all" id="match-gender-btn-all" onclick="setMatchGender('all',this)">♂♀ ทุกประเภท</button>
         <button type="button" class="filter-btn inplay" id="match-gender-btn-M" onclick="setMatchGender('M',this)">♂ MEN'S</button>
         <button type="button" class="filter-btn" id="match-gender-btn-F" onclick="setMatchGender('F',this)" style="background:rgba(255,128,171,0.12);color:#ff80ab;border:1px solid rgba(255,128,171,0.3);">♀ WOMEN'S</button>
