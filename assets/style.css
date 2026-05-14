@@ -329,6 +329,7 @@ body::after {
   font-family:'Orbitron',monospace; font-size:10px; font-weight:700;
   color:var(--cyan); letter-spacing:0.5px;
 }
+.fix-women .fix-date-info { color:#ff79c6; }
 .fix-date-round {
   font-family:'Anuphan',sans-serif; font-size:9px; color:rgba(255,255,255,0.3);
 }
