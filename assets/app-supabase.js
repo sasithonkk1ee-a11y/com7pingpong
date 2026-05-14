@@ -964,12 +964,13 @@ function renderTopPlayers(){
   var men   = state.players.filter(function(p){ return p.gender==='M'; }).sort(rankComparator).slice(0,3);
   var women = state.players.filter(function(p){ return p.gender==='F'; }).sort(rankComparator).slice(0,3);
 
-  function card(p, rank){
+  function card(p, rank, isWomen){
     if(!p) return '<div class="podium-card" style="opacity:0.25;flex:1;max-width:110px"><div style="padding:20px;font-size:28px;text-align:center">?</div></div>';
     var parsed = parseName(p.name);
+    var slotColor = isWomen ? '#ff79c6' : 'var(--cyan)';
     var displayName = parsed.firstName || ('คุณ' + p.name);
     if(parsed.nickName) displayName += '<br><span style="font-size:11px;opacity:0.7;">('+parsed.nickName+')</span>';
-    if(parsed.slot)     displayName += '<br><span style="font-family:\'Orbitron\',monospace;font-size:11px;color:var(--cyan);">'+parsed.slot+'</span>';
+    if(parsed.slot)     displayName += '<br><span style="font-family:\'Orbitron\',monospace;font-size:11px;color:'+slotColor+';">'+parsed.slot+'</span>';
     var teamHtml = p.team ? '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">'+p.team+'</div>' : '';
     return '<div class="podium-card rank-'+rank+'"><div class="rank-badge">'+rank+'</div>'+podiumAva(p)+'<div class="podium-name" style="text-align:center;line-height:1.4;">'+displayName+'</div>'+teamHtml+'<div class="podium-pts">'+((p.played||0))+' Match</div></div>';
   }
@@ -978,8 +979,8 @@ function renderTopPlayers(){
   var fOrder = [women[1], women[0], women[2]];
   var mRanks = [2,1,3];
 
-  document.getElementById('men-podium').innerHTML   = mOrder.map(function(p,i){ return card(p, mRanks[i]); }).join('');
-  document.getElementById('women-podium').innerHTML = fOrder.map(function(p,i){ return card(p, mRanks[i]); }).join('');
+  document.getElementById('men-podium').innerHTML   = mOrder.map(function(p,i){ return card(p, mRanks[i], false); }).join('');
+  document.getElementById('women-podium').innerHTML = fOrder.map(function(p,i){ return card(p, mRanks[i], true); }).join('');
 }
 
 function renderOverviewStats(){
