@@ -62,7 +62,7 @@
       <div class="stat-num" id="stat-live">0</div>
       <div class="stat-label">LIVE</div>
     </div>
-    <div class="stat-card" style="background:linear-gradient(160deg,rgba(0,30,55,0.9),rgba(0,20,40,0.97));border:1px solid rgba(100,200,255,0.2);cursor:pointer;" onclick="showTab('matches',document.querySelector('.tab:nth-child(3)'));setTimeout(function(){setMatchFilter('upcoming',document.querySelector('#match-status-filters .filter-btn:nth-child(4)'))},100);">
+    <div class="stat-card" style="background:linear-gradient(160deg,rgba(0,30,55,0.9),rgba(0,20,40,0.97));border:1px solid rgba(100,200,255,0.2);cursor:pointer;" onclick="showTab('matches',document.querySelector('.tab:nth-child(3)'));setTimeout(function(){setMatchFilter('upcoming',document.querySelector('.match-filter-row .filter-btn.eliminated'))},100);">
       <div style="font-size:18px;margin-bottom:4px;">📅</div>
       <div id="stat-next-date" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--cyan);line-height:1.4;">—</div>
       <div class="stat-label">แข่งต่อไป</div>
@@ -157,6 +157,19 @@
   <div id="photo-lightbox-name" style="font-family:'Anuphan',sans-serif;font-size:20px;font-weight:700;color:#fff;text-shadow:0 0 20px rgba(0,229,255,0.5);text-align:center;"></div>
   <div style="font-size:13px;color:rgba(255,255,255,0.4);">แตะที่ใดก็ได้เพื่อปิด</div>
 </div>
+<script>
+function openPhotoModal(src, name) {
+  var lb = document.getElementById('photo-lightbox');
+  if (!lb) return;
+  document.getElementById('photo-lightbox-img').src = src || '';
+  document.getElementById('photo-lightbox-name').textContent = name || '';
+  lb.style.display = 'flex';
+}
+function closePhotoModal() {
+  var lb = document.getElementById('photo-lightbox');
+  if (lb) lb.style.display = 'none';
+}
+</script>
 <!-- Supabase SDK (onerror = ซ่อน loader แล้วใช้ localStorage แทน) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   onerror="window.supabase=null;var l=document.getElementById('pp-loader');if(l)l.style.display='none';"></script>
