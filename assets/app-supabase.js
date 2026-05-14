@@ -1483,8 +1483,9 @@ function populatePlayerSelects(gender){
     filteredPlayers = state.players.filter(function(p) { return p.gender === gender; });
   }
   
+  // value = p.name (ตรงกับ state), label = fmtNameInline (normalize "คุณ" ให้สม่ำเสมอ)
   var o = '<option value="">— เลือกผู้เล่น —</option>' + filteredPlayers.map(function(p){ 
-    return '<option value="'+p.name+'">'+p.name+'</option>'; 
+    return '<option value="'+p.name+'">'+fmtNameInline(p.name)+'</option>'; 
   }).join('');
   
   selIds.forEach(function(id){
@@ -2195,7 +2196,7 @@ function renderBracketSetup() {
   var womenCount = state.players.filter(function(p) { return p.gender === 'F'; }).length;
 
   var pOpts = '<option value="">— เลือกผู้เล่น —</option>' + players.map(function(p) {
-    return '<option value="' + p.name + '">' + p.name + '</option>';
+    return '<option value="' + p.name + '">' + fmtNameInline(p.name) + '</option>';
   }).join('');
 
   var readyCount = existing.filter(function(m) { return m.p1 && m.p2; }).length;
@@ -2410,9 +2411,9 @@ function updateEditPlayerDropdownsByGender() {
   }
   
   var o = '<option value="">— เลือกผู้เล่น —</option>' + filteredPlayers.map(function(p){ 
-    return '<option value="'+p.name+'">'+p.name+'</option>'; 
+    return '<option value="'+p.name+'">'+fmtNameInline(p.name)+'</option>'; 
   }).join('');
-  
+
   selIds.forEach(function(id){
     var el = document.getElementById(id);
     if(el){ 
