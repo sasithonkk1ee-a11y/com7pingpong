@@ -131,6 +131,14 @@
 
 /* ── ADMIN OVERRIDES (larger than index) ────────────── */
 .admin-panel{padding:26px;}
+@media (max-width:480px) {
+  .admin-panel { padding:14px 12px; }
+  .admin-topbar { padding:12px 14px; }
+  .admin-topbar-logo { font-size:12px; }
+  .admin-topbar-badge { font-size:11px; padding:4px 10px; }
+  .logout-btn { font-size:12px; padding:6px 12px; }
+  .edit-modal-card { padding:20px 16px !important; max-height:90vh; overflow-y:auto; }
+}
 .admin-title{font-size:15px !important;letter-spacing:2px;}
 .form-label{font-size:13px !important;}
 .form-input,.form-select{font-size:15px !important;padding:13px 16px !important;}
@@ -181,7 +189,7 @@
       <button type="button" class="logout-btn" onclick="logout()">ออกจากระบบ</button>
     </div>
 
-    <div style="padding:24px 18px;">
+    <div style="padding:clamp(12px,4vw,24px) clamp(10px,3vw,18px)">
       <div class="section-title">จัดการข้อมูล</div>
       <div class="section-sub">เพิ่ม / แก้ไข ข้อมูลการแข่งขัน</div>
 
