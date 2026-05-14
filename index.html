@@ -156,8 +156,9 @@
   <div id="photo-lightbox-name" style="font-family:'Anuphan',sans-serif;font-size:20px;font-weight:700;color:#fff;text-shadow:0 0 20px rgba(0,229,255,0.5);text-align:center;"></div>
   <div style="font-size:13px;color:rgba(255,255,255,0.4);">แตะที่ใดก็ได้เพื่อปิด</div>
 </div>
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase SDK (onerror = ซ่อน loader แล้วใช้ localStorage แทน) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  onerror="window.supabase=null;var l=document.getElementById('pp-loader');if(l)l.style.display='none';"></script>
 
 <!-- Supabase Configuration -->
 <script src="supabase-config.js"></script>
