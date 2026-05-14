@@ -486,7 +486,7 @@ async function addPlayer() {
   // ตัด "คุณ" ออกจาก firstname และ nickname ก่อน (ป้องกันซ้ำ)
   var cleanFirst = firstname.replace(/^(คุณ\s*)+/i, '').trim();
   var cleanNick = nickname.replace(/^(คุณ\s*)+/i, '').trim();
-  var namePart = 'คุณ ' + cleanFirst + (cleanNick ? ' (คุณ ' + cleanNick + ')' : '');
+  var namePart = 'คุณ' + cleanFirst + (cleanNick ? ' (คุณ' + cleanNick + ')' : '');
   var fullName = slot ? namePart + ' ' + slot : namePart;
   var name = fullName; // compat
 
@@ -604,7 +604,7 @@ async function saveEditPlayer() {
   // ตัด "คุณ " ออกก่อน (ป้องกันซ้ำ — ตัดซ้ำหลายชั้นด้วย)
   var cleanNewName = newName.replace(/^(คุณ\s*)+/i, '').trim();
   var cleanNewNick = newNick.replace(/^(คุณ\s*)+/i, '').trim();
-  var namePart = 'คุณ ' + cleanNewName + (cleanNewNick ? ' (คุณ ' + cleanNewNick + ')' : '');
+  var namePart = 'คุณ' + cleanNewName + (cleanNewNick ? ' (คุณ' + cleanNewNick + ')' : '');
   var fullName = newSlot ? namePart + ' ' + newSlot : namePart;
   if (!newName) {
     showToast('กรุณากรอกชื่อ', true);
@@ -967,7 +967,7 @@ function renderTopPlayers(){
   function card(p, rank){
     if(!p) return '<div class="podium-card" style="opacity:0.25;flex:1;max-width:110px"><div style="padding:20px;font-size:28px;text-align:center">?</div></div>';
     var parsed = parseName(p.name);
-    var displayName = parsed.firstName || ('คุณ ' + p.name);
+    var displayName = parsed.firstName || ('คุณ' + p.name);
     if(parsed.nickName) displayName += '<br><span style="font-size:11px;opacity:0.7;">('+parsed.nickName+')</span>';
     if(parsed.slot)     displayName += '<br><span style="font-family:\'Orbitron\',monospace;font-size:11px;color:var(--cyan);">'+parsed.slot+'</span>';
     var teamHtml = p.team ? '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">'+p.team+'</div>' : '';
@@ -1108,7 +1108,7 @@ function fixtureRow(m, idx){
     var player = state.players.find(function(pl){ return pl.name === name; });
     var team = player ? player.team : '';
     var p = parseName(name);
-    var fn = p.firstName || ('คุณ ' + name);
+    var fn = p.firstName || ('คุณ' + name);
     var nn = p.nickName ? '<span class="frow-nick">('+p.nickName+')</span>' : '';
     var slotPill = p.slot ? '<span class="frow-slot">'+p.slot+'</span>' : '';
     var dept = (team && team !== 'ทีม/แผนก') ? team : '';
@@ -1143,9 +1143,8 @@ function fixtureRow(m, idx){
 
   return '<div class="fix-row'+(isLive?' fix-live':'')+genderClass+'" id="fix-row-'+m.id+'">'
 
-    // ── Col 1: Date + Status ──
+    // ── Col 1: Date ──
     +'<div class="fix-date">'
-      +statusHtml
       +'<div class="fix-date-day">'+dateLabel+'</div>'
       +(timeStr ? '<div class="fix-date-info">'+timeStr+'</div>' : '')
       +(roundLabel ? '<div class="fix-date-round">'+roundLabel+'</div>' : '')
@@ -1170,6 +1169,12 @@ function fixtureRow(m, idx){
     +'<div class="fix-player-b">'
       +playerBlock(m.p2, w2, w1, false)
     +'</div>'
+
+    // ── Row 3 (mobile): Status badge ──
+    +'<div class="fix-status-mobile">'+statusHtml+'</div>'
+
+    // ── Col 5 (desktop): Status ──
+    +'<div class="fix-status">'+statusHtml+'</div>'
 
   +'</div>';
 }
@@ -1401,8 +1406,8 @@ function parseName(name){
   // strip "คุณ " ซ้ำออกทั้งหมด แล้วเติมกลับครั้งเดียว พร้อม space
   var cleanFirst = rawFirst.replace(/^(คุณ\s*)+/i,'').trim();
   var cleanNick  = rawNick.replace(/^(คุณ\s*)+/i,'').trim();
-  var firstName = cleanFirst ? 'คุณ ' + cleanFirst : '';
-  var nickName  = cleanNick  ? 'คุณ ' + cleanNick  : '';
+  var firstName = cleanFirst ? 'คุณ' + cleanFirst : '';
+  var nickName  = cleanNick  ? 'คุณ' + cleanNick  : '';
   return { firstName: firstName, nickName: nickName, slot: slot };
 }
 
@@ -1443,7 +1448,7 @@ function fmtNameWithDept(name, alignRight, isWinner){
 // บรรทัด 1: ชื่อ + ชื่อเล่น  บรรทัด 2: แผนก  บรรทัด 3: สาย
 function fmtNameBlock(name, team, gPill){
   var p = parseName(name);
-  var fn = p.firstName || ('คุณ ' + name);
+  var fn = p.firstName || ('คุณ' + name);
   var nn = p.nickName ? ' <span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+p.nickName+')</span>' : '';
   var teamHtml = team
     ? '<div style="margin-top:1px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+team+'</div>'
