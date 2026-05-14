@@ -175,23 +175,27 @@ async function addPlayerToSupabase(playerData) {
   }
 }
 
-// Update player in Supabase
+// Update player in Supabase — ส่งเฉพาะ field ที่มีใน updates (partial update)
 async function updatePlayerInSupabase(playerId, updates) {
   try {
+    // สร้าง payload เฉพาะ field ที่ถูกส่งมา (ไม่ undefined)
+    var payload = {};
+    if (updates.name      !== undefined) payload.name       = updates.name;
+    if (updates.team      !== undefined) payload.team       = updates.team;
+    if (updates.gender    !== undefined) payload.gender     = updates.gender === 'M' ? 'men' : 'women';
+    if (updates.status    !== undefined) payload.status     = updates.status === 'WINNER' ? 'winner' : updates.status === 'ELIMINATED' ? 'eliminated' : 'active';
+    if (updates.points    !== undefined) payload.points     = updates.points;
+    if (updates.wins      !== undefined) payload.wins       = updates.wins;
+    if (updates.losses    !== undefined) payload.losses     = updates.losses;
+    if (updates.setsFor   !== undefined) payload.sets_won   = updates.setsFor;
+    if (updates.setsAgainst !== undefined) payload.sets_lost = updates.setsAgainst;
+    if (updates.photo     !== undefined) payload.photo_url  = updates.photo;
+
+    if (Object.keys(payload).length === 0) return true; // ไม่มีอะไรต้องอัปเดต
+
     const { error } = await supabaseClient
       .from('players')
-      .update({
-        name: updates.name,
-        team: updates.team,
-        gender: updates.gender === 'M' ? 'men' : 'women',
-        status: updates.status === 'WINNER' ? 'winner' : updates.status === 'ELIMINATED' ? 'eliminated' : 'active',
-        points: updates.points,
-        wins: updates.wins,
-        losses: updates.losses,
-        sets_won: updates.setsFor,
-        sets_lost: updates.setsAgainst,
-        ...(updates.photo ? { photo_url: updates.photo } : {})
-      })
+      .update(payload)
       .eq('id', playerId);
 
     if (error) throw error;
@@ -208,14 +212,15 @@ async function recalcAndSyncPlayersToSupabase() {
   // คำนวณ stats ใหม่จาก matches ทั้งหมดใน state
   recalcStandingsOnly();
 
-  // sync ทุก player ไป Supabase พร้อมกัน
+  // sync ทุก player ไป Supabase — ส่งเฉพาะ stats ที่คำนวณจากแมตช์จริง
+  // ไม่ส่ง name/team/gender/status/photo เพื่อป้องกันเขียนทับข้อมูลอื่น
   const updates = state.players.map(function(p) {
     return supabaseClient.from('players').update({
-      wins: p.wins,
-      losses: p.losses,
-      sets_won: p.setsFor,
+      wins:      p.wins,
+      losses:    p.losses,
+      sets_won:  p.setsFor,
       sets_lost: p.setsAgainst,
-      points: p.points
+      points:    p.points
     }).eq('id', p.id);
   });
 
@@ -535,6 +540,9 @@ async function addMatch() {
   if (window.supabaseClient) {
     const addedMatch = await addMatchToSupabase(matchData);
     if (addedMatch) {
+      // reload ข้อมูลจาก Supabase ใหม่ทั้งหมด เพื่อให้ state ตรงกับ DB จริง
+      _supabaseLoadDone = false;
+      await loadDataFromSupabase();
       showToast('✅ บันทึกผล ' + p1 + ' vs ' + p2 + ' สำเร็จ');
       return;
     }
@@ -571,19 +579,21 @@ async function saveEditPlayer() {
     return;
   }
 
+  // ดึงค่าจาก form — ถ้าว่างให้ใช้ค่าเดิมจาก p เสมอ (ป้องกันเขียนทับด้วยค่าว่าง)
+  var teamVal   = (document.getElementById('edit-player-team').value || '').trim();
+  var genderVal = document.getElementById('edit-player-gender').value || p.gender;
+  var statusVal = document.getElementById('edit-player-status').value || p.status;
+
+  // ส่งเฉพาะ name/team/gender/status เท่านั้น
+  // ห้ามส่ง points/wins/losses/setsFor/setsAgainst — ค่าเหล่านี้คำนวณจากแมตช์จริงเท่านั้น
   var updates = {
-    name: fullName,
-    team: document.getElementById('edit-player-team').value.trim() || p.team,
-    gender: document.getElementById('edit-player-gender').value,
-    status: document.getElementById('edit-player-status').value,
-    points: p.points,
-    wins: p.wins,
-    losses: p.losses,
-    setsFor: p.setsFor,
-    setsAgainst: p.setsAgainst
+    name:   fullName,
+    team:   teamVal || p.team,
+    gender: genderVal,
+    status: statusVal
   };
 
-  // อัปโหลดรูปใหม่ถ้ามี
+  // อัปโหลดรูปใหม่ถ้ามี — ถ้าไม่มีรูปใหม่ ไม่ส่ง photo field เลย (ไม่เขียนทับรูปเดิม)
   if (window._editPendingPhoto) {
     if (window.supabaseClient) {
       var blob = dataURLtoBlob(window._editPendingPhoto);
@@ -594,6 +604,7 @@ async function saveEditPlayer() {
     }
     window._editPendingPhoto = null;
   }
+  // ถ้าไม่มีรูปใหม่ ไม่ set updates.photo → updatePlayerInSupabase จะไม่แตะ photo_url เลย
 
   var oldName = p.name;
 
@@ -703,7 +714,9 @@ async function saveEditMatch() {
     const success = await updateMatchInSupabase(id, updates);
     if (success) {
       closeEditMatchModal();
-      renderAll();
+      // reload จาก Supabase ใหม่ทั้งหมด เพื่อให้ ranking/top players อัปเดตทันที
+      _supabaseLoadDone = false;
+      await loadDataFromSupabase();
       showToast('✅ แก้ไขผลแมตช์สำเร็จ');
       return;
     }
@@ -753,6 +766,10 @@ async function deleteMatch(id) {
   if (window.supabaseClient) {
     const success = await deleteMatchFromSupabase(id);
     if (success) {
+      // ลบออกจาก state แล้ว recalc + sync stats ทันที
+      state.matches = state.matches.filter(x => x.id !== id);
+      _saveAndBroadcast();
+      await recalcAndSyncPlayersToSupabase();
       showToast('🗑️ ลบแมตช์แล้ว');
       return;
     }
@@ -797,6 +814,21 @@ async function initApp() {
     var loader = document.getElementById('pp-loader');
     if (loader) loader.style.display = 'none';
   }, 5000);
+
+  // ถ้าเปิดผ่าน file:// ให้ใช้ localStorage เลย ไม่ต้องรอ Supabase
+  if (window.location.protocol === 'file:') {
+    clearTimeout(loaderTimeout);
+    var loader = document.getElementById('pp-loader');
+    if (loader) loader.style.display = 'none';
+    _loadFromLocalStorage();
+    // setup cross-tab sync
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'com7v3' && e.newValue) {
+        try { var fresh = JSON.parse(e.newValue); state.players = fresh.players || []; state.matches = fresh.matches || []; renderAll(); } catch(err) {}
+      }
+    });
+    return;
+  }
 
   try {
     // Check if Supabase client is available
@@ -1045,7 +1077,7 @@ function fixtureRow(m, idx){
     var team = player ? player.team : '';
     var p = parseName(name);
     var fn = p.firstName || ('คุณ ' + name);
-    var nn = p.nickName ? '<span class="frow-nick">('+p.nickName+')</span>' : '';
+    var nn = p.nickName ? ' <span class="frow-nick">('+p.nickName+')</span>' : '';
     var slotPill = p.slot ? '<span class="frow-slot">'+p.slot+'</span>' : '';
     var dept = (team && team !== 'ทีม/แผนก') ? team : '';
     var nameCls = 'frow-name'+(isWinner?' frow-winner':'');
@@ -1241,7 +1273,7 @@ function renderStandings(){
           p.setsFor+'/'+p.setsAgainst+
           ' <span style="color:'+setDiffColor+';font-size:11px;">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-family:\'Anuphan\',sans-serif;font-size:14px;font-weight:700;color:#d29922;text-align:center;">'+ptsFor+'/'+((p.pointsAgainst)||0)+'</td>'+
+        '<td style="font-family:\'Anuphan\',sans-serif;font-size:14px;font-weight:700;color:#fff;text-align:center;">'+ptsFor+'/'+((p.pointsAgainst)||0)+'</td>'+
         '<td style="min-width:120px;">'+
           '<div class="wpct-wrap">'+
             '<div class="wpct-bar-track"><div class="wpct-bar-fill" style="width:'+winPct+'%"></div></div>'+
@@ -1284,7 +1316,7 @@ function renderStandings(){
         '<td style="font-size:10px;white-space:nowrap">'+p.setsFor+'/'+p.setsAgainst+
           '<span style="font-size:9px;color:'+setDiffColor+';margin-left:3px">('+setDiffStr+')</span>'+
         '</td>'+
-        '<td style="font-weight:700;color:var(--gold);font-family:\'Anuphan\',sans-serif;font-size:13px">'+ptsFor2+'/'+((p.pointsAgainst)||0)+'</td>'+
+        '<td style="font-weight:700;color:#fff;font-family:\'Anuphan\',sans-serif;font-size:13px">'+ptsFor2+'/'+((p.pointsAgainst)||0)+'</td>'+
         '<td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:'+p.pct+'%"></div></div><span style="font-size:9px;color:var(--muted);min-width:30px">'+p.pct+'%</span></div></td>'+
         '<td><span class="status-badge '+scClass+'">'+p.status+'</span></td>'+
       '</tr>';
@@ -1382,7 +1414,7 @@ function fmtNameWithDept(name, alignRight, isWinner){
 function fmtNameBlock(name, team, gPill){
   var p = parseName(name);
   var fn = p.firstName || ('คุณ ' + name);
-  var nn = p.nickName ? '<span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+p.nickName+')</span>' : '';
+  var nn = p.nickName ? ' <span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:4px;">('+p.nickName+')</span>' : '';
   var teamHtml = team
     ? '<div style="margin-top:1px;font-size:11px;color:rgba(255,255,255,0.4);font-family:\'Anuphan\',sans-serif;">'+team+'</div>'
     : '';
