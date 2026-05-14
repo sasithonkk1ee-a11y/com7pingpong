@@ -137,12 +137,38 @@ function setupRealtimeSubscriptions() {
   try {
     supabaseClient
       .channel('db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, () => loadDataFromSupabase())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => loadDataFromSupabase())
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, function() {
+        _supabaseLoadDone = false;
+        loadDataFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, function() {
+        _supabaseLoadDone = false;
+        loadDataFromSupabase();
+      })
+      .subscribe(function(status) {
+        console.log('Realtime status:', status);
+        // ถ้า realtime ไม่ได้ SUBSCRIBED ให้ fallback เป็น polling
+        if (status !== 'SUBSCRIBED') {
+          _startPolling();
+        }
+      });
   } catch(e) {
     console.warn('Realtime subscription unavailable:', e);
+    _startPolling();
   }
+}
+
+// Polling fallback — re-fetch จาก Supabase ทุก 30 วินาที
+var _pollingInterval = null;
+function _startPolling() {
+  if (_pollingInterval) return; // ไม่ start ซ้ำ
+  console.log('Starting polling fallback (30s)');
+  _pollingInterval = setInterval(function() {
+    if (document.visibilityState === 'visible' && window.supabaseClient) {
+      _supabaseLoadDone = false;
+      loadDataFromSupabase();
+    }
+  }, 30000);
 }
 
 // ─── ADMIN FUNCTIONS ──────────────────────────────────────────────────────────
@@ -865,8 +891,8 @@ async function initApp() {
   // อัปเดตเมื่อ user กลับมาที่ tab นี้ (หลังจาก admin แก้ไข)
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-      if (window.supabaseClient && _supabaseLoadDone) {
-        // reload จาก Supabase
+      if (window.supabaseClient) {
+        // reload จาก Supabase เสมอเมื่อกลับมาที่ tab
         _supabaseLoadDone = false;
         loadDataFromSupabase();
       } else {
@@ -2421,3 +2447,4 @@ function recalcStandings(){
   if(typeof populatePlayerSelects === 'function') populatePlayerSelects();
   showToast('✅ อัปเดตข้อมูลทั้งหมดเสร็จสิ้น');
 }
+
