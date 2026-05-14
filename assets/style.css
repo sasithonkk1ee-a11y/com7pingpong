@@ -403,6 +403,7 @@ body::after {
 }
 .fix-player-b .frow-name { text-align:left; }
 .frow-winner { color:#00bfff; text-shadow:0 0 8px rgba(0,191,255,0.3); }
+.fix-women .frow-winner { color:#ff79c6; text-shadow:0 0 8px rgba(255,121,198,0.35); }
 .frow-nick   { font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-top:1px; text-align:right; }
 .fix-player-b .frow-nick { text-align:left; }
 .frow-dept   { display:none; /* hidden on mobile */ }
@@ -411,6 +412,10 @@ body::after {
   color:var(--cyan); background:rgba(0,229,255,0.08);
   border:1px solid rgba(0,229,255,0.18); border-radius:4px;
   padding:1px 4px; vertical-align:middle;
+}
+.fix-women .frow-slot {
+  color:#ff79c6; background:rgba(255,121,198,0.08);
+  border-color:rgba(255,121,198,0.25);
 }
 .frow-trophy { font-size:12px; vertical-align:middle; }
 .frow-trophy-ph { display:inline-block; width:16px; flex-shrink:0; }
