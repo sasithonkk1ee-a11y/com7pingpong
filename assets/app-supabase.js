@@ -1396,15 +1396,15 @@ function parseName(name){
   var slotM = name.match(/\s([A-D]\d+)\s*$/i);
   var slot = slotM ? slotM[1].toUpperCase() : '';
   var noSlot = slotM ? name.replace(/\s([A-D]\d+)\s*$/i,'').trim() : name;
-  var noPre = noSlot.replace(/^คุณ\s+/i,'').trim();
+  var noPre = noSlot.replace(/^(คุณ\s+)+/i,'').trim();
   var nickM = noPre.match(/^(.+?)\s*\((.+?)\)\s*$/);
   var rawFirst = nickM ? nickM[1].trim() : noPre;
   var rawNick  = nickM ? nickM[2].trim() : '';
-  // strip "คุณ " ซ้ำออกทั้งหมด แล้วเติมกลับครั้งเดียว
-  var cleanFirst = rawFirst.replace(/^(คุณ\s+)+/i,'').trim();
-  var cleanNick  = rawNick.replace(/^(คุณ\s+)+/i,'').trim();
-  var firstName = cleanFirst ? 'คุณ' + cleanFirst : '';
-  var nickName  = cleanNick  ? 'คุณ' + cleanNick  : '';
+  // strip "คุณ " ซ้ำออกทั้งหมด แล้วเติมกลับครั้งเดียว พร้อม space
+  var cleanFirst = rawFirst.replace(/^(คุณ\s*)+/i,'').trim();
+  var cleanNick  = rawNick.replace(/^(คุณ\s*)+/i,'').trim();
+  var firstName = cleanFirst ? 'คุณ ' + cleanFirst : '';
+  var nickName  = cleanNick  ? 'คุณ ' + cleanNick  : '';
   return { firstName: firstName, nickName: nickName, slot: slot };
 }
 
@@ -1413,7 +1413,7 @@ function parseName(name){
 function fmtNameInline(name){
   if(!name) return '';
   var p = parseName(name);
-  var out = p.firstName || ('คุณ' + name);
+  var out = p.firstName || name;
   if(p.nickName) out += ' (' + p.nickName + ')';
   if(p.slot)     out += ' ' + p.slot;
   return out;
