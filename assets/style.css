@@ -318,7 +318,7 @@ body::after {
 .fix-date {
   grid-column:1 / -1; grid-row:1;
   display:flex; flex-direction:row; flex-wrap:wrap;
-  align-items:center; gap:5px;
+  align-items:center; justify-content:center; gap:5px;
   padding:0 0 7px; border-bottom:1px solid var(--border2);
 }
 .fix-date-day {
@@ -1062,4 +1062,57 @@ body::after {
   .frow-name { font-size:11px !important; }
   .fix-score-inner { min-width:46px !important; height:34px !important; }
   .fix-score-num { font-size:12px !important; padding:0 3px !important; }
+}
+
+/* ─── TOP PLAYERS LEADERBOARD LAYOUT ────────────────────────────────────────── */
+.leaderboard-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 50px;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  align-items: start;
+}
+.gender-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.gender-label {
+  color: #64b5f6;
+  text-align: center;
+  margin-bottom: 0;
+}
+.women-text {
+  color: #f48fb1;
+}
+@media (max-width: 850px) {
+  .leaderboard-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 10px;
+  }
+  .gender-container {
+    width: 100%;
+    margin-bottom: 32px;
+  }
+  .podium-row {
+    gap: 6px;
+    padding-top: 40px;
+    min-height: 190px;
+    overflow-x: hidden;
+  }
+  .podium-card {
+    flex: 1 1 0;
+    max-width: 30%;
+    min-width: 0;
+    padding: 10px 4px 8px;
+  }
+  .podium-card.rank-1 {
+    flex: 1 1 0;
+    max-width: 36%;
+  }
 }
