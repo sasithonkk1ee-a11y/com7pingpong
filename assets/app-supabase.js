@@ -2213,13 +2213,13 @@ function renderBracketSetup() {
   // Existing pairs
   existing.forEach(function(m, i) {
     var isReady = m.p1 && m.p2;
-    html += '<div class="bpair-card' + (isReady ? ' ready' : '') + '" data-id="' + m.id + '" style="display:grid;grid-template-columns:24px 1fr 28px 1fr 150px 110px 36px;align-items:center;gap:8px;">' +
+    html += '<div class="bpair-card bpair-row' + (isReady ? ' ready' : '') + '" data-id="' + m.id + '">' +
       '<span class="bpair-num">' + (i + 1) + '</span>' +
-      '<select id="bse-p1-' + m.id + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
-      '<span class="bpair-vs" style="text-align:center;">vs</span>' +
-      '<select id="bse-p2-' + m.id + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
-      '<input type="date" id="bse-date-' + m.id + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (m.date||'') + '"/>' +
-      '<input type="time" id="bse-time-' + m.id + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (m.time||'') + '"/>' +
+      '<select id="bse-p1-' + m.id + '" class="bpair-select bpair-p1">' + pOpts + '</select>' +
+      '<span class="bpair-vs">vs</span>' +
+      '<select id="bse-p2-' + m.id + '" class="bpair-select bpair-p2">' + pOpts + '</select>' +
+      '<input type="date" id="bse-date-' + m.id + '" class="form-input bpair-date" value="' + (m.date||'') + '"/>' +
+      '<input type="time" id="bse-time-' + m.id + '" class="form-input bpair-time" value="' + (m.time||'') + '"/>' +
       '<button onclick="removeBracketPair(\'' + m.id + '\')" class="bpair-del">🗑️</button>' +
     '</div>';
   });
@@ -2227,13 +2227,13 @@ function renderBracketSetup() {
   // New rows (pending — not yet saved)
   var pendingRows = window._pendingBracketRows || [];
   pendingRows.forEach(function(row, i) {
-    html += '<div class="bpair-card new-row" id="bspending-' + i + '" style="display:grid;grid-template-columns:24px 1fr 28px 1fr 150px 110px 36px;align-items:center;gap:8px;">' +
+    html += '<div class="bpair-card bpair-row new-row" id="bspending-' + i + '">' +
       '<span class="bpair-num" style="color:rgba(0,229,255,0.4);">' + (existing.length + i + 1) + '</span>' +
-      '<select id="bspending-p1-' + i + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
-      '<span class="bpair-vs" style="text-align:center;">vs</span>' +
-      '<select id="bspending-p2-' + i + '" class="bpair-select" style="width:100%;min-width:0;">' + pOpts + '</select>' +
-      '<input type="date" id="bspending-date-' + i + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (row.date||'') + '"/>' +
-      '<input type="time" id="bspending-time-' + i + '" class="form-input" style="width:100%;padding:6px 8px;font-size:12px;" value="' + (row.time||'') + '"/>' +
+      '<select id="bspending-p1-' + i + '" class="bpair-select bpair-p1">' + pOpts + '</select>' +
+      '<span class="bpair-vs">vs</span>' +
+      '<select id="bspending-p2-' + i + '" class="bpair-select bpair-p2">' + pOpts + '</select>' +
+      '<input type="date" id="bspending-date-' + i + '" class="form-input bpair-date" value="' + (row.date||'') + '"/>' +
+      '<input type="time" id="bspending-time-' + i + '" class="form-input bpair-time" value="' + (row.time||'') + '"/>' +
       '<button onclick="removePendingRow(' + i + ')" class="bpair-del">🗑️</button>' +
     '</div>';
   });
