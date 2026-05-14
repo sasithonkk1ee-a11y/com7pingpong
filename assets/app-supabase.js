@@ -478,9 +478,9 @@ async function addPlayer() {
 
   // รวมชื่อ: "คุณ ชื่อจริง (คุณ ชื่อเล่น) สาย"
   // ตัด "คุณ" ออกจาก firstname และ nickname ก่อน (ป้องกันซ้ำ)
-  var cleanFirst = firstname.replace(/^คุณ\s+/i, '').trim();
-  var cleanNick = nickname.replace(/^คุณ\s+/i, '').trim();
-  var namePart = 'คุณ' + cleanFirst + (cleanNick ? ' (คุณ' + cleanNick + ')' : '');
+  var cleanFirst = firstname.replace(/^(คุณ\s*)+/i, '').trim();
+  var cleanNick = nickname.replace(/^(คุณ\s*)+/i, '').trim();
+  var namePart = 'คุณ ' + cleanFirst + (cleanNick ? ' (คุณ ' + cleanNick + ')' : '');
   var fullName = slot ? namePart + ' ' + slot : namePart;
   var name = fullName; // compat
 
@@ -595,9 +595,9 @@ async function saveEditPlayer() {
   var newName = document.getElementById('edit-player-name').value.trim();
   var newNick = document.getElementById('edit-player-nickname') ? document.getElementById('edit-player-nickname').value.trim() : '';
   var newSlot = document.getElementById('edit-player-slot') ? document.getElementById('edit-player-slot').value.trim().toUpperCase() : '';
-  // ตัด "คุณ " ออกก่อน (ป้องกันซ้ำ)
-  var cleanNewName = newName.replace(/^คุณ\s+/i, '').trim();
-  var cleanNewNick = newNick.replace(/^คุณ\s+/i, '').trim();
+  // ตัด "คุณ " ออกก่อน (ป้องกันซ้ำ — ตัดซ้ำหลายชั้นด้วย)
+  var cleanNewName = newName.replace(/^(คุณ\s*)+/i, '').trim();
+  var cleanNewNick = newNick.replace(/^(คุณ\s*)+/i, '').trim();
   var namePart = 'คุณ ' + cleanNewName + (cleanNewNick ? ' (คุณ ' + cleanNewNick + ')' : '');
   var fullName = newSlot ? namePart + ' ' + newSlot : namePart;
   if (!newName) {
@@ -1625,8 +1625,6 @@ function openEditMatch(id){
   if(!m) return;
   populatePlayerSelects();
   document.getElementById('edit-match-id').value     = m.id;
-  document.getElementById('edit-match-p1').value     = m.p1;
-  document.getElementById('edit-match-p2').value     = m.p2;
   document.getElementById('edit-match-score1').value = m.score1;
   document.getElementById('edit-match-score2').value = m.score2;
   document.getElementById('edit-match-round').value  = m.round;
@@ -1634,6 +1632,25 @@ function openEditMatch(id){
   document.getElementById('edit-match-status').value = m.status;
   document.getElementById('edit-match-date').value   = m.date || '';
   document.getElementById('edit-match-time').value   = m.time || '';
+
+  // set player dropdowns — ถ้า m.p1/m.p2 ไม่ตรงกับ option value ให้ fuzzy match
+  function setPlayerSelect(elId, nameVal) {
+    var sel = document.getElementById(elId);
+    if (!sel) return;
+    sel.value = nameVal;
+    if (sel.value === nameVal) return; // match ตรง
+    // fuzzy: หา option ที่ชื่อใกล้เคียงที่สุด (ตัด "คุณ " แล้วเทียบ)
+    var cleanVal = nameVal.replace(/^(คุณ\s*)+/i, '').trim().toLowerCase();
+    var best = null;
+    Array.from(sel.options).forEach(function(opt) {
+      if (!opt.value) return;
+      var cleanOpt = opt.value.replace(/^(คุณ\s*)+/i, '').trim().toLowerCase();
+      if (cleanOpt === cleanVal) best = opt.value;
+    });
+    if (best) sel.value = best;
+  }
+  setPlayerSelect('edit-match-p1', m.p1);
+  setPlayerSelect('edit-match-p2', m.p2);
   // reset _editSets ก่อนเสมอ แล้วโหลดของคู่นี้
   window._editSets = (m.sets && Array.isArray(m.sets) && m.sets.length > 0)
     ? JSON.parse(JSON.stringify(m.sets))
@@ -2447,4 +2464,3 @@ function recalcStandings(){
   if(typeof populatePlayerSelects === 'function') populatePlayerSelects();
   showToast('✅ อัปเดตข้อมูลทั้งหมดเสร็จสิ้น');
 }
-
