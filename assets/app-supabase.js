@@ -244,8 +244,7 @@ async function recalcAndSyncPlayersToSupabase() {
   // คำนวณ stats ใหม่จาก matches ทั้งหมดใน state
   recalcStandingsOnly();
 
-  // sync ทุก player ไป Supabase — ส่งเฉพาะ stats ที่คำนวณจากแมตช์จริง
-  // ไม่ส่ง name/team/gender/status/photo เพื่อป้องกันเขียนทับข้อมูลอื่น
+  // sync ทุก player ไป Supabase
   const updates = state.players.map(function(p) {
     return supabaseClient.from('players').update({
       wins:      p.wins,
@@ -2460,10 +2459,14 @@ function updateStats(p1n, p2n, s1, s2, sets){
   // นับชนะ/แพ้
   if(s1 > s2){
     p1.wins++; p2.losses++;
+    p1.points += 3; // ชนะ = 3 แต้ม
   } else if(s2 > s1){
     p2.wins++; p1.losses++;
+    p2.points += 3;
   } else {
     p1.wins++; p2.wins++;
+    p1.points += 1; // เสมอ = 1 แต้ม
+    p2.points += 1;
   }
   p1.pct = p1.played ? Math.round((p1.wins / p1.played) * 100) : 0;
   p2.pct = p2.played ? Math.round((p2.wins / p2.played) * 100) : 0;
