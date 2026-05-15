@@ -353,11 +353,14 @@ async function updateMatchInSupabase(matchId, updates) {
         status: updates.status === 'completed' ? 'finished' : updates.status === 'live' ? 'live' : 'upcoming',
         scheduled_at: updates.date && updates.time ? `${updates.date}T${updates.time}:00` : null,
         finished_at: updates.status === 'completed' ? new Date().toISOString() : null,
-        sets: updates.sets || null
+        sets: updates.sets && updates.sets.length > 0 ? updates.sets : null
       })
       .eq('id', matchId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase match update error:', error.message, error.details, error.hint);
+      throw error;
+    }
 
     // อัปเดต state แล้ว recalc stats
     var idx = state.matches.findIndex(m => m.id === matchId);
@@ -752,6 +755,9 @@ async function saveEditMatch() {
       await loadDataFromSupabase();
       showToast('✅ แก้ไขผลแมตช์สำเร็จ');
       return;
+    } else {
+      // updateMatchInSupabase failed — fallback to local state
+      showToast('⚠️ Supabase error — บันทึกในเครื่องแทน', true);
     }
   }
 
@@ -2455,7 +2461,6 @@ function updateStats(p1n, p2n, s1, s2, sets){
     p1.pointsFor += totalA; p1.pointsAgainst += totalB;
     p2.pointsFor += totalB; p2.pointsAgainst += totalA;
   } else {
-    // ไม่มี sets — ใช้ score (จำนวนเซตชนะ) แทน
     p1.pointsFor += s1; p1.pointsAgainst += s2;
     p2.pointsFor += s2; p2.pointsAgainst += s1;
   }
