@@ -2440,7 +2440,7 @@ function updateStats(p1n, p2n, s1, s2, sets){
   p1.setsFor += s1; p1.setsAgainst += s2;
   p2.setsFor += s2; p2.setsAgainst += s1;
 
-  // pointsFor/pointsAgainst = คะแนนรวมจากทุกเซต
+  // pointsFor/pointsAgainst = คะแนนรวมจากทุกเซต (ถ้ามี) หรือใช้ score แทน
   if(!p1.pointsFor) p1.pointsFor = 0;
   if(!p1.pointsAgainst) p1.pointsAgainst = 0;
   if(!p2.pointsFor) p2.pointsFor = 0;
@@ -2454,6 +2454,10 @@ function updateStats(p1n, p2n, s1, s2, sets){
     });
     p1.pointsFor += totalA; p1.pointsAgainst += totalB;
     p2.pointsFor += totalB; p2.pointsAgainst += totalA;
+  } else {
+    // ไม่มี sets — ใช้ score (จำนวนเซตชนะ) แทน
+    p1.pointsFor += s1; p1.pointsAgainst += s2;
+    p2.pointsFor += s2; p2.pointsAgainst += s1;
   }
 
   // นับชนะ/แพ้
