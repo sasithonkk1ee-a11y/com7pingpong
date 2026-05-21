@@ -49,9 +49,9 @@ async function loadDataFromSupabase() {
     // Load matches
 const { data: playersData, error: playersError } = await supabaseClient
       .from('players')
-      .select('*');
-    if (matchesError) throw matchesError;
-
+      .select('*')
+      .order('points', { ascending: false });
+    
     state.matches = (matchesData || []).map(m => {
       // ใช้ player_id lookup ชื่อจาก players table ก่อน
       // ถ้าไม่เจอ fallback ไป player_name ใน matches
