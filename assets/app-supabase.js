@@ -2481,15 +2481,24 @@ function updateStats(p1n, p2n, s1, s2, sets){
   p2.pct = p2.played ? Math.round((p2.wins / p2.played) * 100) : 0;
 }
 
-function recalcStandingsOnly(){
+unction recalcStandingsOnly(){
   state.players.forEach(function(p){
-    p.played=0; p.wins=0; p.losses=0;
-    p.setsFor=0; p.setsAgainst=0;
-    p.pointsFor=0; p.pointsAgainst=0;
-    p.points=0; p.pct=0;
+    p.played = 0; p.wins = 0; p.losses = 0; p.points = 0;
+    p.setsFor = 0; p.setsAgainst = 0; p.pointsFor = 0; p.pointsAgainst = 0; p.pct = 0;
   });
-  state.matches.filter(function(m){ return m.status==='completed'; }).forEach(function(m){
-    updateStats(m.p1, m.p2, m.score1, m.score2, m.sets);
+  state.matches.forEach(function(m){
+    if(m.status === 'completed') updatePlayerStats(m);
+  });
+  state.players.sort(function(a, b){
+    var diffA = (a.setsFor || 0) - (a.setsAgainst || 0);
+    var diffB = (b.setsFor || 0) - (b.setsAgainst || 0);
+    if(diffB !== diffA) return diffB - diffA;
+    if(b.setsFor !== a.setsFor) return b.setsFor - a.setsFor;
+    if(b.points !== a.points) return b.points - a.points;
+    if(b.pct !== a.pct) return b.pct - a.pct;
+    var pDiffA = (a.pointsFor || 0) - (a.pointsAgainst || 0);
+    var pDiffB = (b.pointsFor || 0) - (b.pointsAgainst || 0);
+    return pDiffB - pDiffA;
   });
 }
 
