@@ -47,11 +47,9 @@ async function loadDataFromSupabase() {
     }));
 
     // Load matches
-    const { data: matchesData, error: matchesError } = await supabaseClient
-      .from('matches')
-      .select('*')
-      .order('created_at', { ascending: true });
-
+const { data: playersData, error: playersError } = await supabaseClient
+      .from('players')
+      .select('*');
     if (matchesError) throw matchesError;
 
     state.matches = (matchesData || []).map(m => {
