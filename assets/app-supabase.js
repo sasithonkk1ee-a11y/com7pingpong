@@ -127,7 +127,7 @@ function _getDefaultData() {
       {id:8, name:'B. SOOKA',    team:'ทีม/แผนก', gender:'F', played:12, wins:6,  losses:8,  setsFor:20, setsAgainst:11, points:22, pct:84, status:'IN_PLAY',    photo:null},
     ],
     matches:[
-      {id:1, p1:'A. JAYDEN', p2:'B. LIGK',  score1:2, score2:0, round:'��� A', gender:'M', status:'completed'},
+      {id:1, p1:'A. JAYDEN', p2:'B. LIGK',  score1:2, score2:0, round:'    A', gender:'M', status:'completed'},
       {id:2, p1:'A. JAYDEN', p2:'B. LAROY', score1:3, score2:0, round:'Semi Final',  gender:'M', status:'completed'},
     ]
   };
@@ -2196,7 +2196,7 @@ function renderBracketSetup() {
   var el = document.getElementById('bracket-setup-body');
   if (!el) return;
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
-  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '��� A').trim();
+  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '    A').trim();
 
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
@@ -2232,7 +2232,7 @@ function renderBracketSetup() {
   });
 
   // New rows (pending — not yet saved)
-  var pendingRows = window._pendingBracketRows || [];         
+  var pendingRows = window._pendingBracketRows || [];
   pendingRows.forEach(function(row, i) {
     html += '<div class="bpair-card bpair-row new-row" id="bspending-' + i + '">' +
       '<span class="bpair-num" style="color:rgba(0,229,255,0.4);">' + (existing.length + i + 1) + '</span>' +
@@ -2314,7 +2314,7 @@ async function removeBracketPair(id) {
 
 async function saveBracketSetup() {
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
-  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '��� A').trim();
+  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '    A').trim();
   
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
@@ -2481,24 +2481,15 @@ function updateStats(p1n, p2n, s1, s2, sets){
   p2.pct = p2.played ? Math.round((p2.wins / p2.played) * 100) : 0;
 }
 
-unction recalcStandingsOnly(){
+function recalcStandingsOnly(){
   state.players.forEach(function(p){
-    p.played = 0; p.wins = 0; p.losses = 0; p.points = 0;
-    p.setsFor = 0; p.setsAgainst = 0; p.pointsFor = 0; p.pointsAgainst = 0; p.pct = 0;
+    p.played=0; p.wins=0; p.losses=0;
+    p.setsFor=0; p.setsAgainst=0;
+    p.pointsFor=0; p.pointsAgainst=0;
+    p.points=0; p.pct=0;
   });
-  state.matches.forEach(function(m){
-    if(m.status === 'completed') updatePlayerStats(m);
-  });
-  state.players.sort(function(a, b){
-    var diffA = (a.setsFor || 0) - (a.setsAgainst || 0);
-    var diffB = (b.setsFor || 0) - (b.setsAgainst || 0);
-    if(diffB !== diffA) return diffB - diffA;
-    if(b.setsFor !== a.setsFor) return b.setsFor - a.setsFor;
-    if(b.points !== a.points) return b.points - a.points;
-    if(b.pct !== a.pct) return b.pct - a.pct;
-    var pDiffA = (a.pointsFor || 0) - (a.pointsAgainst || 0);
-    var pDiffB = (b.pointsFor || 0) - (b.pointsAgainst || 0);
-    return pDiffB - pDiffA;
+  state.matches.filter(function(m){ return m.status==='completed'; }).forEach(function(m){
+    updateStats(m.p1, m.p2, m.score1, m.score2, m.sets);
   });
 }
 
