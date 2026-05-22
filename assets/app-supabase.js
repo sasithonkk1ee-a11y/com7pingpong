@@ -127,7 +127,7 @@ function _getDefaultData() {
       {id:8, name:'B. SOOKA',    team:'ทีม/แผนก', gender:'F', played:12, wins:6,  losses:8,  setsFor:20, setsAgainst:11, points:22, pct:84, status:'IN_PLAY',    photo:null},
     ],
     matches:[
-      {id:1, p1:'A. JAYDEN', p2:'B. LIGK',  score1:2, score2:0, round:'    A', gender:'M', status:'completed'},
+      {id:1, p1:'A. JAYDEN', p2:'B. LIGK',  score1:2, score2:0, round:'��� A', gender:'M', status:'completed'},
       {id:2, p1:'A. JAYDEN', p2:'B. LAROY', score1:3, score2:0, round:'Semi Final',  gender:'M', status:'completed'},
     ]
   };
@@ -1239,21 +1239,22 @@ function h2hResult(a, b){
 }
 
 // Ranking comparator: pointsFor → win% → set diff → point diff → name
+// Ranking comparator: set diff → win% → points → point diff → name
 function rankComparator(a, b){
-  // ขั้น 1: แต้มรวม (pointsFor) — มากกว่าอยู่บน
-  var aPts = a.pointsFor || 0;
-  var bPts = b.pointsFor || 0;
-  if(bPts !== aPts) return bPts - aPts;
+  // ขั้น 1: ผลต่างเซต (เซตได้ - เซตเสีย) — ใครมากกว่าอยู่สูงกว่า
+  var aSetDiff = (a.setsFor || 0) - (a.setsAgainst || 0);
+  var bSetDiff = (b.setsFor || 0) - (b.setsAgainst || 0);
+  if(bSetDiff !== aSetDiff) return bSetDiff - aSetDiff;
 
-  // ขั้น 2: % ชนะ (win rate)
+  // ขั้น 2: % ชนะ (win rate) — ตัวตัดสินรอง
   var aWR = a.played ? (a.wins / a.played) : 0;
   var bWR = b.played ? (b.wins / b.played) : 0;
   if(bWR !== aWR) return bWR - aWR;
 
-  // ขั้น 3: ผลต่างเซต (setsFor - setsAgainst)
-  var aSetDiff = (a.setsFor || 0) - (a.setsAgainst || 0);
-  var bSetDiff = (b.setsFor || 0) - (b.setsAgainst || 0);
-  if(bSetDiff !== aSetDiff) return bSetDiff - aSetDiff;
+  // ขั้น 3: แต้มรวม (points)
+  var aPts = a.points || 0;
+  var bPts = b.points || 0;
+  if(bPts !== aPts) return bPts - aPts;
 
   // ขั้น 4: ผลต่างแต้ม (pointsFor - pointsAgainst)
   var aPtDiff = (a.pointsFor || 0) - (a.pointsAgainst || 0);
@@ -2196,7 +2197,7 @@ function renderBracketSetup() {
   var el = document.getElementById('bracket-setup-body');
   if (!el) return;
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
-  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '    A').trim();
+  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '��� A').trim();
 
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
@@ -2314,7 +2315,7 @@ async function removeBracketPair(id) {
 
 async function saveBracketSetup() {
   var gender = document.getElementById('bracket-setup-gender') ? document.getElementById('bracket-setup-gender').value : 'M';
-  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '    A').trim();
+  var round = (document.getElementById('bracket-setup-round') ? document.getElementById('bracket-setup-round').value : '��� A').trim();
   
   var existing = state.matches.filter(function(m) { 
     return m.gender === gender && m.round.trim() === round; 
