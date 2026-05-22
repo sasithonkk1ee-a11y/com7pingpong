@@ -413,15 +413,19 @@ function h2hResult(a, b){
   return 0;
 }
 
-// 3-step comparator: points → set diff → H2H
+// Ranking comparator: set diff → win% → points → H2H
 function rankComparator(a, b){
-  // ขั้น 1: แต้มรวม (ชนะ +2, แพ้ +1) — ใครมากกว่าอยู่สูงกว่า
-  if(b.points !== a.points) return b.points - a.points;
-  // ขั้น 2: ผลต่างเซต (เซตได้ - เซตเสีย) — ใครมากกว่าอยู่สูงกว่า
-  var aDiff = a.setsFor - a.setsAgainst;
-  var bDiff = b.setsFor - b.setsAgainst;
+  // ขั้น 1: ผลต่างเซต (เซตได้ - เซตเสีย) — ใครมากกว่าอยู่สูงกว่า
+  var aDiff = (a.setsFor || 0) - (a.setsAgainst || 0);
+  var bDiff = (b.setsFor || 0) - (b.setsAgainst || 0);
   if(bDiff !== aDiff) return bDiff - aDiff;
-  // ขั้น 3: Head-to-Head — ใครเคยชนะกันโดยตรง
+  // ขั้น 2: % ชนะ (win rate) — ตัวตัดสินรอง
+  var aWR = a.played ? (a.wins / a.played) : 0;
+  var bWR = b.played ? (b.wins / b.played) : 0;
+  if(bWR !== aWR) return bWR - aWR;
+  // ขั้น 3: แต้มรวม (ชนะ +2, แพ้ +1)
+  if(b.points !== a.points) return b.points - a.points;
+  // ขั้น 4: Head-to-Head — ใครเคยชนะกันโดยตรง
   return -h2hResult(a, b);
 }
 
